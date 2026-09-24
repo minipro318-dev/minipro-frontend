@@ -1,28 +1,145 @@
-import { useCallback, useEffect, useState, type FormEvent } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
+import type { Socket } from 'socket.io-client'
 import { DashboardPanel } from '../../components/dashboard'
-import { IncidentCard } from '../../components/incidents'
+import { IncidentCard, IncidentMap } from '../../components/incidents'
 import { FormField, InlineAlert, PrimaryButton, TextInput } from '../../components/ui'
 import { useAuth } from '../../hooks/useAuth'
 import { incidentApi } from '../../services/incident.api'
+import { createRealtimeSocket, type IncidentRealtimePayload } from '../../services/realtime'
 import type { Incident } from '../../types/incident.types'
 
+type LocationSnapshot = {
+  latitude: number
+  longitude: number
+  accuracy: number | null
+  locationTimestamp: string
+}
+
+const getLocationErrorMessage = (error: GeolocationPositionError) => {
+  if (error.code === error.PERMISSION_DENIED) {
+    return 'Location permission is required to trigger SOS. Please allow location access and try again.'
+  }
+  if (error.code === error.TIMEOUT) {
+    return 'Timed out while getting your location. Please retry.'
+  }
+  return 'Unable to get your current location right now. Please retry.'
+}
+
+const getCurrentLocation = (): Promise<LocationSnapshot> =>
+  new Promise((resolve, reject) => {
+    if (!navigator.geolocation) {
+      reject(new Error('Geolocation is not supported by this browser.'))
+      return
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        resolve({
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+          accuracy: Number.isFinite(position.coords.accuracy) ? position.coords.accuracy : null,
+          locationTimestamp: new Date(position.timestamp).toISOString(),
+        })
+      },
+      (error) => reject(error),
+      {
+        enableHighAccuracy: true,
+        timeout: 12000,
+        maximumAge: 0,
+      },
+    )
+  })
+
 export const UserDashboard = () => {
-  const { token } = useAuth()
+  const { token, user } = useAuth()
   const [incidents, setIncidents] = useState<Incident[]>([])
   const [title, setTitle] = useState('Emergency SOS')
   const [description, setDescription] = useState('')
-  const [latitude, setLatitude] = useState('')
-  const [longitude, setLongitude] = useState('')
-  const [address, setAddress] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [message, setMessage] = useState('')
+  const [locationState, setLocationState] = useState<'idle' | 'getting' | 'ready'>('idle')
+  const [lastKnownLocation, setLastKnownLocation] = useState<LocationSnapshot | null>(null)
+  const [trackingIncidentId, setTrackingIncidentId] = useState<number | null>(null)
+
+  const socketRef = useRef<Socket | null>(null)
+  const watchIdRef = useRef<number | null>(null)
+  const sendingLocationRef = useRef(false)
+
+  const activeIncident = useMemo(
+    () => incidents.find((incident) => incident.id === trackingIncidentId || incident.status === 'ACTIVE'),
+    [incidents, trackingIncidentId],
+  )
 
   const loadIncidents = useCallback(async () => {
     if (!token) return
     const data = await incidentApi.list(token)
     setIncidents(data.incidents)
   }, [token])
+
+  const stopLiveTracking = useCallback(() => {
+    if (watchIdRef.current !== null && navigator.geolocation) {
+      navigator.geolocation.clearWatch(watchIdRef.current)
+    }
+    watchIdRef.current = null
+    setTrackingIncidentId(null)
+  }, [])
+
+  const sendLocationUpdate = useCallback(
+    async (incidentId: number, location: LocationSnapshot) => {
+      if (!token || sendingLocationRef.current) return
+      sendingLocationRef.current = true
+      try {
+        await incidentApi.addLocation(token, incidentId, {
+          latitude: location.latitude,
+          longitude: location.longitude,
+          accuracy: location.accuracy ?? undefined,
+          locationTimestamp: location.locationTimestamp,
+        })
+      } catch {
+        setError('Live location update failed due to network issue. We will retry on next location update.')
+      } finally {
+        sendingLocationRef.current = false
+      }
+    },
+    [token],
+  )
+
+  const startLiveTracking = useCallback(
+    (incidentId: number) => {
+      if (!navigator.geolocation) return
+      if (watchIdRef.current !== null) return
+
+      const watchId = navigator.geolocation.watchPosition(
+        (position) => {
+          const location: LocationSnapshot = {
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude,
+            accuracy: Number.isFinite(position.coords.accuracy) ? position.coords.accuracy : null,
+            locationTimestamp: new Date(position.timestamp).toISOString(),
+          }
+          setLastKnownLocation(location)
+          setLocationState('ready')
+          void sendLocationUpdate(incidentId, location)
+        },
+        (positionError) => {
+          setError(getLocationErrorMessage(positionError))
+          if (positionError.code === positionError.PERMISSION_DENIED) {
+            stopLiveTracking()
+          }
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 15000,
+          maximumAge: 5000,
+        },
+      )
+
+      watchIdRef.current = watchId
+      setTrackingIncidentId(incidentId)
+    },
+    [sendLocationUpdate, stopLiveTracking],
+  )
 
   useEffect(() => {
     const run = async () => {
@@ -39,42 +156,109 @@ export const UserDashboard = () => {
     void run()
   }, [loadIncidents])
 
+  useEffect(() => {
+    if (!token) return
+
+    const socket = createRealtimeSocket(token)
+    socketRef.current = socket
+
+    const onIncidentCreated = (payload: IncidentRealtimePayload) => {
+      setIncidents((previous) => [payload.incident, ...previous.filter((incident) => incident.id !== payload.incident.id)])
+      if (payload.userId === user?.id && payload.status === 'ACTIVE') {
+        startLiveTracking(payload.incidentId)
+      }
+    }
+    const onLocationUpdated = (payload: IncidentRealtimePayload) => {
+      setIncidents((previous) => previous.map((incident) => (incident.id === payload.incident.id ? payload.incident : incident)))
+    }
+    const onStatusUpdated = (payload: IncidentRealtimePayload) => {
+      setIncidents((previous) => previous.map((incident) => (incident.id === payload.incident.id ? payload.incident : incident)))
+      if (trackingIncidentId && payload.incidentId === trackingIncidentId && payload.status !== 'ACTIVE') {
+        stopLiveTracking()
+      }
+    }
+
+    socket.on('incident:created', onIncidentCreated)
+    socket.on('incident:location-updated', onLocationUpdated)
+    socket.on('incident:status-updated', onStatusUpdated)
+
+    return () => {
+      socket.off('incident:created', onIncidentCreated)
+      socket.off('incident:location-updated', onLocationUpdated)
+      socket.off('incident:status-updated', onStatusUpdated)
+      socket.disconnect()
+      socketRef.current = null
+    }
+  }, [token, user?.id, startLiveTracking, trackingIncidentId, stopLiveTracking])
+
+  useEffect(() => {
+    const onVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && trackingIncidentId) {
+        void (async () => {
+          try {
+            const location = await getCurrentLocation()
+            setLastKnownLocation(location)
+            void sendLocationUpdate(trackingIncidentId, location)
+          } catch {
+            // no-op
+          }
+        })()
+      }
+    }
+
+    document.addEventListener('visibilitychange', onVisibilityChange)
+    return () => document.removeEventListener('visibilitychange', onVisibilityChange)
+  }, [trackingIncidentId, sendLocationUpdate])
+
+  useEffect(
+    () => () => {
+      stopLiveTracking()
+    },
+    [stopLiveTracking],
+  )
+
   const onTriggerSos = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     setError('')
     setMessage('')
 
-    const lat = Number(latitude)
-    const lng = Number(longitude)
-    if (!Number.isFinite(lat) || lat < -90 || lat > 90) {
-      setError('Latitude must be a valid number between -90 and 90.')
-      return
-    }
-    if (!Number.isFinite(lng) || lng < -180 || lng > 180) {
-      setError('Longitude must be a valid number between -180 and 180.')
-      return
-    }
-
     if (!token) return
+    if (!title.trim()) {
+      setError('SOS title is required.')
+      return
+    }
 
     try {
       setLoading(true)
-      await incidentApi.triggerSos(token, {
-        title: title.trim() || 'Emergency SOS',
+      setLocationState('getting')
+      const location = await getCurrentLocation()
+      setLastKnownLocation(location)
+      setLocationState('ready')
+
+      const response = await incidentApi.triggerSos(token, {
+        title: title.trim(),
         description: description.trim() || undefined,
-        latitude: lat,
-        longitude: lng,
-        address: address.trim() || undefined,
+        latitude: location.latitude,
+        longitude: location.longitude,
+        accuracy: location.accuracy ?? undefined,
+        locationTimestamp: location.locationTimestamp,
       })
-      setMessage('SOS incident created successfully.')
+
+      setMessage('SOS alert sent successfully. Live location tracking started.')
       setDescription('')
-      await loadIncidents()
+      setIncidents((previous) => [response.incident, ...previous.filter((incident) => incident.id !== response.incident.id)])
+      startLiveTracking(response.incident.id)
     } catch (apiError) {
-      const apiMessage =
-        typeof apiError === 'object' && apiError && 'message' in apiError && typeof apiError.message === 'string'
-          ? apiError.message
-          : 'Failed to create SOS incident.'
-      setError(apiMessage)
+      if (apiError && typeof apiError === 'object' && 'code' in apiError) {
+        setError(getLocationErrorMessage(apiError as GeolocationPositionError))
+      } else {
+        const apiMessage =
+          typeof apiError === 'object' && apiError && 'message' in apiError && typeof apiError.message === 'string'
+            ? apiError.message
+            : 'Failed to create SOS incident.'
+        setError(apiMessage)
+      }
+      setLocationState('idle')
     } finally {
       setLoading(false)
     }
@@ -86,8 +270,11 @@ export const UserDashboard = () => {
     setMessage('')
     try {
       await incidentApi.cancel(token, incidentId)
-      setMessage(`Incident #${incidentId} cancelled successfully.`)
       await loadIncidents()
+      setMessage(`Incident #${incidentId} cancelled successfully.`)
+      if (trackingIncidentId === incidentId) {
+        stopLiveTracking()
+      }
     } catch (apiError) {
       const apiMessage =
         typeof apiError === 'object' && apiError && 'message' in apiError && typeof apiError.message === 'string'
@@ -100,7 +287,7 @@ export const UserDashboard = () => {
   return (
     <div className="space-y-6">
       <DashboardPanel
-        description="Trigger SOS alerts and track your incidents. Active incidents can be cancelled by you."
+        description="Trigger SOS alerts with automatic location capture and share live updates with authorized recipients."
         title="End User Dashboard"
       />
 
@@ -112,21 +299,26 @@ export const UserDashboard = () => {
         <FormField id="description" label="Description (optional)">
           <TextInput id="description" onChange={(e) => setDescription(e.target.value)} value={description} />
         </FormField>
-        <div className="grid gap-4 md:grid-cols-2">
-          <FormField id="latitude" label="Latitude">
-            <TextInput id="latitude" onChange={(e) => setLatitude(e.target.value)} placeholder="12.9716" value={latitude} />
-          </FormField>
-          <FormField id="longitude" label="Longitude">
-            <TextInput id="longitude" onChange={(e) => setLongitude(e.target.value)} placeholder="77.5946" value={longitude} />
-          </FormField>
+
+        <div className="rounded-md border border-brand-border-soft/60 bg-brand-black/70 px-3 py-2 text-sm">
+          <p className="font-medium text-brand-pink">Location</p>
+          {locationState === 'getting' ? (
+            <p className="text-brand-muted">Getting your current location...</p>
+          ) : locationState === 'ready' && lastKnownLocation ? (
+            <div className="text-brand-muted">
+              <p>Current location detected.</p>
+              <p>Accuracy: {lastKnownLocation.accuracy ?? 'Not available'}</p>
+              <p>Location timestamp: {new Date(lastKnownLocation.locationTimestamp).toLocaleString()}</p>
+            </div>
+          ) : (
+            <p className="text-brand-muted">Current location will be detected automatically when you trigger SOS.</p>
+          )}
         </div>
-        <FormField id="address" label="Address (optional)">
-          <TextInput id="address" onChange={(e) => setAddress(e.target.value)} placeholder="MG Road, Bengaluru" value={address} />
-        </FormField>
+
         {error ? <InlineAlert message={error} /> : null}
         {message ? <p className="rounded-md border border-emerald-500/60 bg-emerald-950/40 px-3 py-2 text-sm text-emerald-200">{message}</p> : null}
         <PrimaryButton disabled={loading} type="submit">
-          {loading ? 'Triggering SOS...' : 'Trigger SOS Alert'}
+          {loading ? 'Getting your location...' : 'Trigger SOS Alert'}
         </PrimaryButton>
       </form>
 
@@ -143,6 +335,7 @@ export const UserDashboard = () => {
                     </PrimaryButton>
                   ) : null
                 }
+                detailSlot={incident.locationLogs.length ? <IncidentMap incident={incident} /> : null}
                 incident={incident}
                 key={incident.id}
               />
@@ -152,6 +345,12 @@ export const UserDashboard = () => {
           <p className="text-sm text-brand-muted">No incidents found yet.</p>
         )}
       </section>
+
+      {activeIncident ? (
+        <p className="text-xs text-brand-muted">
+          Live tracking status: {activeIncident.status === 'ACTIVE' ? 'active (sending updates while this tab is running).' : 'inactive'}
+        </p>
+      ) : null}
     </div>
   )
 }

@@ -30,14 +30,26 @@ export const incidentApi = {
     request<{ incident: Incident }>(`/incidents/${incidentId}`, token),
   triggerSos: (
     token: string,
-    payload: { title?: string; description?: string; latitude: number; longitude: number; address?: string },
+    payload: {
+      title?: string
+      description?: string
+      latitude: number
+      longitude: number
+      accuracy?: number
+      locationTimestamp?: string
+      address?: string
+    },
   ) =>
     request<{ message: string; incident: Incident }>('/incidents/sos', token, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
     }),
-  addLocation: (token: string, incidentId: number, payload: { latitude: number; longitude: number; address?: string }) =>
+  addLocation: (
+    token: string,
+    incidentId: number,
+    payload: { latitude: number; longitude: number; accuracy?: number; locationTimestamp?: string; address?: string },
+  ) =>
     request<{ message: string; incident: Incident }>(`/incidents/${incidentId}/locations`, token, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

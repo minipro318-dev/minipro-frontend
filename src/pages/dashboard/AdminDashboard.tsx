@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useState } from 'react'
 import { DashboardPanel } from '../../components/dashboard'
-import { IncidentCard } from '../../components/incidents'
+import { IncidentCard, IncidentMap } from '../../components/incidents'
 import { InlineAlert, PrimaryButton } from '../../components/ui'
 import { useAuth } from '../../hooks/useAuth'
 import { incidentApi } from '../../services/incident.api'
+import { createRealtimeSocket, type IncidentRealtimePayload } from '../../services/realtime'
 import type { Incident } from '../../types/incident.types'
 
 export const AdminDashboard = () => {
@@ -32,6 +33,32 @@ export const AdminDashboard = () => {
     }
     void run()
   }, [loadIncidents])
+
+  useEffect(() => {
+    if (!token) return
+    const socket = createRealtimeSocket(token)
+
+    const onIncidentCreated = (payload: IncidentRealtimePayload) => {
+      setIncidents((previous) => [payload.incident, ...previous.filter((incident) => incident.id !== payload.incident.id)])
+    }
+    const onLocationUpdated = (payload: IncidentRealtimePayload) => {
+      setIncidents((previous) => previous.map((incident) => (incident.id === payload.incident.id ? payload.incident : incident)))
+    }
+    const onStatusUpdated = (payload: IncidentRealtimePayload) => {
+      setIncidents((previous) => previous.map((incident) => (incident.id === payload.incident.id ? payload.incident : incident)))
+    }
+
+    socket.on('incident:created', onIncidentCreated)
+    socket.on('incident:location-updated', onLocationUpdated)
+    socket.on('incident:status-updated', onStatusUpdated)
+
+    return () => {
+      socket.off('incident:created', onIncidentCreated)
+      socket.off('incident:location-updated', onLocationUpdated)
+      socket.off('incident:status-updated', onStatusUpdated)
+      socket.disconnect()
+    }
+  }, [token])
 
   const onResolve = async (incidentId: number) => {
     if (!token) return
@@ -99,6 +126,7 @@ export const AdminDashboard = () => {
                     </>
                   ) : null
                 }
+                detailSlot={incident.locationLogs.length ? <IncidentMap incident={incident} /> : null}
                 incident={incident}
                 key={incident.id}
               />

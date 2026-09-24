@@ -12,6 +12,8 @@ export type IncidentLocation = {
   id: number
   latitude: number
   longitude: number
+  accuracy: number | null
+  locationTimestamp: string
   address: string | null
   source: string
   createdAt: string

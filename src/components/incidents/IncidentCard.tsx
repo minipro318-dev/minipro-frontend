@@ -5,9 +5,10 @@ import { IncidentStatusBadge } from './IncidentStatusBadge'
 type IncidentCardProps = {
   incident: Incident
   actionSlot?: ReactNode
+  detailSlot?: ReactNode
 }
 
-export const IncidentCard = ({ incident, actionSlot }: IncidentCardProps) => {
+export const IncidentCard = ({ incident, actionSlot, detailSlot }: IncidentCardProps) => {
   const latestLocation = incident.locationLogs[0]
 
   return (
@@ -30,12 +31,16 @@ export const IncidentCard = ({ incident, actionSlot }: IncidentCardProps) => {
         <div className="mt-3 rounded-md border border-brand-border-soft/50 bg-brand-black/60 p-3 text-sm">
           <p>Lat: {latestLocation.latitude.toFixed(6)}</p>
           <p>Lng: {latestLocation.longitude.toFixed(6)}</p>
+          <p>Accuracy: {latestLocation.accuracy ?? 'Not available'}</p>
           <p>Address: {latestLocation.address || 'Not provided'}</p>
-          <p className="text-xs text-brand-muted">Updated: {new Date(latestLocation.createdAt).toLocaleString()} ({latestLocation.source})</p>
+          <p className="text-xs text-brand-muted">
+            GPS time: {new Date(latestLocation.locationTimestamp).toLocaleString()} ({latestLocation.source})
+          </p>
         </div>
       ) : null}
 
       {actionSlot ? <div className="mt-4 flex flex-wrap gap-2">{actionSlot}</div> : null}
+      {detailSlot ? <div className="mt-4">{detailSlot}</div> : null}
     </article>
   )
 }
