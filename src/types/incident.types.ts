@@ -1,4 +1,4 @@
-export type IncidentStatus = 'ACTIVE' | 'RESOLVED' | 'CANCELLED'
+export type IncidentStatus = 'ACTIVE' | 'PENDING' | 'RESOLVED' | 'CANCELLED'
 
 export type IncidentActor = {
   id: number

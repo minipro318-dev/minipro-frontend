@@ -1,141 +1,128 @@
-import { useCallback, useEffect, useState } from 'react'
-import { DashboardPanel } from '../../components/dashboard'
-import { IncidentCard, IncidentMap } from '../../components/incidents'
-import { InlineAlert, PrimaryButton } from '../../components/ui'
+import { useMemo, useState } from 'react'
+import { AdminHeader } from '../../components/admin-command/AdminHeader'
+import { IncidentDetailDrawer } from '../../components/admin-command/IncidentDetailDrawer'
+import { IncidentFilters } from '../../components/admin-command/IncidentFilters'
+import { IncidentList } from '../../components/admin-command/IncidentList'
+import { IncidentMapPanel } from '../../components/admin-command/IncidentMapPanel'
+import { IncidentStats } from '../../components/admin-command/IncidentStats'
+import type { IncidentFilterState } from '../../components/admin-command/types'
+import { incidentDate } from '../../components/admin-command/incident-ui'
+import { InlineAlert } from '../../components/ui'
 import { useAuth } from '../../hooks/useAuth'
-import { incidentApi } from '../../services/incident.api'
-import { createRealtimeSocket, type IncidentRealtimePayload } from '../../services/realtime'
-import type { Incident } from '../../types/incident.types'
+import { useIncidents } from '../../hooks/useIncidents'
 
 export const AdminDashboard = () => {
   const { token } = useAuth()
-  const [incidents, setIncidents] = useState<Incident[]>([])
-  const [error, setError] = useState('')
-  const [message, setMessage] = useState('')
+  const { incidents, loading, error, message, setError, setMessage, resolveIncident, cancelIncident } = useIncidents(token)
+  const [selectedIncidentId, setSelectedIncidentId] = useState<number | null>(null)
+  const [filters, setFilters] = useState<IncidentFilterState>({
+    search: '',
+    status: 'ALL',
+    type: 'ALL',
+    date: '',
+    sort: 'newest',
+  })
+  const [drawerOpen, setDrawerOpen] = useState(true)
 
-  const loadIncidents = useCallback(async () => {
-    if (!token) return
-    const data = await incidentApi.list(token)
-    setIncidents(data.incidents)
-  }, [token])
+  const incidentTypeOptions = useMemo(() => Array.from(new Set(incidents.map((incident) => incident.title))), [incidents])
 
-  useEffect(() => {
-    const run = async () => {
-      try {
-        await loadIncidents()
-      } catch (apiError) {
-        const apiMessage =
-          typeof apiError === 'object' && apiError && 'message' in apiError && typeof apiError.message === 'string'
-            ? apiError.message
-            : 'Could not load incidents.'
-        setError(apiMessage)
+  const filteredIncidents = useMemo(() => {
+    const query = filters.search.trim().toLowerCase()
+    const ordered = [...incidents].sort((a, b) =>
+      filters.sort === 'newest'
+        ? incidentDate(b).getTime() - incidentDate(a).getTime()
+        : incidentDate(a).getTime() - incidentDate(b).getTime(),
+    )
+
+    return ordered.filter((incident) => {
+      if (filters.status !== 'ALL' && incident.status !== filters.status) {
+        return false
       }
-    }
-    void run()
-  }, [loadIncidents])
+      if (filters.type !== 'ALL' && incident.title !== filters.type) {
+        return false
+      }
+      if (filters.date && new Date(incident.createdAt).toISOString().slice(0, 10) !== filters.date) {
+        return false
+      }
+      if (!query) return true
 
-  useEffect(() => {
-    if (!token) return
-    const socket = createRealtimeSocket(token)
+      const latestAddress = incident.locationLogs[0]?.address?.toLowerCase() ?? ''
+      return (
+        incident.title.toLowerCase().includes(query) ||
+        `incident #${incident.id}`.includes(query) ||
+        incident.reportedBy.name.toLowerCase().includes(query) ||
+        latestAddress.includes(query)
+      )
+    })
+  }, [incidents, filters])
 
-    const onIncidentCreated = (payload: IncidentRealtimePayload) => {
-      setIncidents((previous) => [payload.incident, ...previous.filter((incident) => incident.id !== payload.incident.id)])
-    }
-    const onLocationUpdated = (payload: IncidentRealtimePayload) => {
-      setIncidents((previous) => previous.map((incident) => (incident.id === payload.incident.id ? payload.incident : incident)))
-    }
-    const onStatusUpdated = (payload: IncidentRealtimePayload) => {
-      setIncidents((previous) => previous.map((incident) => (incident.id === payload.incident.id ? payload.incident : incident)))
-    }
+  const summary = useMemo(
+    () => ({
+      active: incidents.filter((incident) => incident.status === 'ACTIVE').length,
+      pending: incidents.filter((incident) => incident.status === 'PENDING').length,
+      resolved: incidents.filter((incident) => incident.status === 'RESOLVED').length,
+      total: incidents.length,
+    }),
+    [incidents],
+  )
 
-    socket.on('incident:created', onIncidentCreated)
-    socket.on('incident:location-updated', onLocationUpdated)
-    socket.on('incident:status-updated', onStatusUpdated)
+  const selectedIncident = useMemo(
+    () =>
+      filteredIncidents.find((incident) => incident.id === selectedIncidentId) ??
+      filteredIncidents[0] ??
+      null,
+    [filteredIncidents, selectedIncidentId],
+  )
 
-    return () => {
-      socket.off('incident:created', onIncidentCreated)
-      socket.off('incident:location-updated', onLocationUpdated)
-      socket.off('incident:status-updated', onStatusUpdated)
-      socket.disconnect()
-    }
-  }, [token])
-
-  const onResolve = async (incidentId: number) => {
-    if (!token) return
-    setError('')
-    setMessage('')
-    try {
-      await incidentApi.resolve(token, incidentId)
-      setMessage(`Incident #${incidentId} marked as resolved.`)
-      await loadIncidents()
-    } catch (apiError) {
-      const apiMessage =
-        typeof apiError === 'object' && apiError && 'message' in apiError && typeof apiError.message === 'string'
-          ? apiError.message
-          : 'Failed to resolve incident.'
-      setError(apiMessage)
-    }
+  const onSelectIncident = (incidentId: number) => {
+    setSelectedIncidentId(incidentId)
+    setDrawerOpen(true)
   }
 
-  const onCancel = async (incidentId: number) => {
-    if (!token) return
+  const handleResolve = async (incidentId: number) => {
     setError('')
     setMessage('')
-    try {
-      await incidentApi.cancel(token, incidentId)
-      setMessage(`Incident #${incidentId} cancelled by admin.`)
-      await loadIncidents()
-    } catch (apiError) {
-      const apiMessage =
-        typeof apiError === 'object' && apiError && 'message' in apiError && typeof apiError.message === 'string'
-          ? apiError.message
-          : 'Failed to cancel incident.'
-      setError(apiMessage)
-    }
+    await resolveIncident(incidentId)
+  }
+
+  const handleCancel = async (incidentId: number) => {
+    setError('')
+    setMessage('')
+    await cancelIncident(incidentId)
   }
 
   return (
-    <div className="space-y-6">
-      <DashboardPanel
-        description="Monitor and manage all SOS incidents. Admin can resolve or cancel active incidents."
-        title="Admin Dashboard"
-      />
+    <div className="space-y-4">
+      <AdminHeader activeCount={summary.active} />
+      <IncidentStats summary={summary} />
+      <IncidentFilters filters={filters} onChange={setFilters} types={incidentTypeOptions} />
 
       {error ? <InlineAlert message={error} /> : null}
       {message ? <p className="rounded-md border border-emerald-500/60 bg-emerald-950/40 px-3 py-2 text-sm text-emerald-200">{message}</p> : null}
 
-      <section className="space-y-3">
-        <h3 className="text-xl font-semibold text-brand-pink">All Incidents</h3>
-        {incidents.length ? (
-          <div className="space-y-3">
-            {incidents.map((incident) => (
-              <IncidentCard
-                actionSlot={
-                  incident.status === 'ACTIVE' ? (
-                    <>
-                      <PrimaryButton className="w-auto px-3 py-1 text-sm" onClick={() => void onResolve(incident.id)} type="button">
-                        Resolve
-                      </PrimaryButton>
-                      <button
-                        className="cursor-pointer rounded-md border border-brand-border px-3 py-1 text-sm hover:bg-brand-pink hover:text-brand-black"
-                        onClick={() => void onCancel(incident.id)}
-                        type="button"
-                      >
-                        Cancel
-                      </button>
-                    </>
-                  ) : null
-                }
-                detailSlot={incident.locationLogs.length ? <IncidentMap incident={incident} /> : null}
-                incident={incident}
-                key={incident.id}
-              />
-            ))}
+      {loading ? (
+        <div className="rounded-xl border border-[#252525] bg-[#111111] p-6 text-sm text-[#A8A29E]">Loading incidents…</div>
+      ) : (
+        <section className="grid gap-3 xl:grid-cols-10">
+          <div className="xl:col-span-4">
+            <IncidentList
+              incidents={filteredIncidents}
+              onSelect={(incident) => onSelectIncident(incident.id)}
+              selectedIncidentId={selectedIncident?.id ?? null}
+            />
           </div>
-        ) : (
-          <p className="text-sm text-brand-muted">No incidents available.</p>
-        )}
-      </section>
+          <div className="relative xl:col-span-6">
+            <IncidentMapPanel incidents={filteredIncidents} selectedIncidentId={selectedIncident?.id ?? null} />
+            <IncidentDetailDrawer
+              incident={selectedIncident}
+              onCancel={handleCancel}
+              onClose={() => setDrawerOpen(false)}
+              onResolve={handleResolve}
+              open={drawerOpen}
+            />
+          </div>
+        </section>
+      )}
     </div>
   )
 }

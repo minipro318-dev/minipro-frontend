@@ -6,6 +6,7 @@ type IncidentStatusBadgeProps = {
 
 const badgeClassByStatus: Record<IncidentStatus, string> = {
   ACTIVE: 'border-red-500/70 bg-red-950/50 text-red-200',
+  PENDING: 'border-amber-500/70 bg-amber-950/50 text-amber-200',
   RESOLVED: 'border-emerald-500/70 bg-emerald-950/50 text-emerald-200',
   CANCELLED: 'border-zinc-500/70 bg-zinc-900/70 text-zinc-300',
 }

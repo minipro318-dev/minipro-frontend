@@ -17,9 +17,9 @@ type AuthContextValue = {
 const AuthContext = createContext<AuthContextValue | undefined>(undefined)
 
 const getHomePathForRole = (role?: UserRole) => {
-  if (role === 'ADMIN') return '/dashboard/admin'
-  if (role === 'GUARDIAN') return '/dashboard/guardian'
-  return '/dashboard/user'
+  if (role === 'ADMIN') return '/dashboard/admin/overview'
+  if (role === 'GUARDIAN') return '/dashboard/guardian/overview'
+  return '/dashboard/user/overview'
 }
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
