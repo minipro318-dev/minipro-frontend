@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { authApi } from '../../services/auth.api'
+import { guardianInviteApi } from '../../services/guardian-invite.api'
 import type { UserRole } from '../../types/auth.types'
 import { isStrongPassword, isValidEmail } from '../../utils/validation'
 import { useAuth } from '../../hooks/useAuth'
@@ -19,6 +20,7 @@ export const Register = () => {
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [adminRegistrationKey, setAdminRegistrationKey] = useState('')
+  const [inviteCode, setInviteCode] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
@@ -53,18 +55,36 @@ export const Register = () => {
       setError('Admin registration key is required for ADMIN role.')
       return
     }
+    if (role === 'GUARDIAN' && !inviteCode.trim()) {
+      setError('Invite code is required for GUARDIAN role.')
+      return
+    }
+    if (role === 'GUARDIAN' && !mobile.trim()) {
+      setError('Mobile is required for GUARDIAN role.')
+      return
+    }
 
     try {
       setLoading(true)
-      const data = await authApi.register({
-        name: trimmedName,
-        email: trimmedEmail,
-        mobile: mobile.trim() || undefined,
-        role,
-        password,
-        confirmPassword,
-        adminRegistrationKey: role === 'ADMIN' ? adminRegistrationKey.trim() : undefined,
-      })
+      const data =
+        role === 'GUARDIAN'
+          ? await guardianInviteApi.accept({
+              inviteCode: inviteCode.trim().toUpperCase(),
+              guardianName: trimmedName,
+              guardianEmail: trimmedEmail,
+              guardianMobile: mobile.trim(),
+              password,
+              confirmPassword,
+            })
+          : await authApi.register({
+              name: trimmedName,
+              email: trimmedEmail,
+              mobile: mobile.trim() || undefined,
+              role,
+              password,
+              confirmPassword,
+              adminRegistrationKey: role === 'ADMIN' ? adminRegistrationKey.trim() : undefined,
+            })
       login(data)
       const rolePath =
         data.user.role === 'ADMIN'
@@ -129,6 +149,16 @@ export const Register = () => {
             onChange={(e) => setAdminRegistrationKey(e.target.value)}
             placeholder="Enter admin registration key"
             value={adminRegistrationKey}
+          />
+        </FormField>
+      ) : null}
+      {role === 'GUARDIAN' ? (
+        <FormField id="inviteCode" label="Guardian Invite Code">
+          <TextInput
+            id="inviteCode"
+            onChange={(e) => setInviteCode(e.target.value)}
+            placeholder="Enter invite code from email"
+            value={inviteCode}
           />
         </FormField>
       ) : null}

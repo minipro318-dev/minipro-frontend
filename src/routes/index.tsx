@@ -5,6 +5,7 @@ import { RoleRoute } from '../components/RoleRoute'
 import { AuthLayout, MainLayout } from '../components/layout'
 import { Login } from '../pages/auth/Login'
 import { Register } from '../pages/auth/Register'
+import { AcceptGuardianInvite } from '../pages/auth/AcceptGuardianInvite'
 import { AdminDashboard } from '../pages/dashboard/AdminDashboard'
 import { GuardianDashboard } from '../pages/dashboard/GuardianDashboard'
 import { UserDashboard } from '../pages/dashboard/UserDashboard'
@@ -15,6 +16,7 @@ export const AppRoutes = () => (
       <Route element={<AuthLayout />}>
         <Route element={<Login />} path="/login" />
         <Route element={<Register />} path="/register" />
+        <Route element={<AcceptGuardianInvite />} path="/guardian-accept" />
       </Route>
     </Route>
 

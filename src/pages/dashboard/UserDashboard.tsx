@@ -4,9 +4,12 @@ import { DashboardPanel } from '../../components/dashboard'
 import { IncidentCard, IncidentMap } from '../../components/incidents'
 import { FormField, InlineAlert, PrimaryButton, TextInput } from '../../components/ui'
 import { useAuth } from '../../hooks/useAuth'
+import { guardianInviteApi } from '../../services/guardian-invite.api'
 import { incidentApi } from '../../services/incident.api'
 import { createRealtimeSocket, type IncidentRealtimePayload } from '../../services/realtime'
+import type { GuardianInvite } from '../../types/guardian-invite.types'
 import type { Incident } from '../../types/incident.types'
+import { isValidEmail } from '../../utils/validation'
 
 type LocationSnapshot = {
   latitude: number
@@ -61,6 +64,11 @@ export const UserDashboard = () => {
   const [locationState, setLocationState] = useState<'idle' | 'getting' | 'ready'>('idle')
   const [lastKnownLocation, setLastKnownLocation] = useState<LocationSnapshot | null>(null)
   const [trackingIncidentId, setTrackingIncidentId] = useState<number | null>(null)
+  const [guardianInvites, setGuardianInvites] = useState<GuardianInvite[]>([])
+  const [guardianName, setGuardianName] = useState('')
+  const [guardianEmail, setGuardianEmail] = useState('')
+  const [guardianMobile, setGuardianMobile] = useState('')
+  const [inviteLoading, setInviteLoading] = useState(false)
 
   const socketRef = useRef<Socket | null>(null)
   const watchIdRef = useRef<number | null>(null)
@@ -75,6 +83,12 @@ export const UserDashboard = () => {
     if (!token) return
     const data = await incidentApi.list(token)
     setIncidents(data.incidents)
+  }, [token])
+
+  const loadGuardianInvites = useCallback(async () => {
+    if (!token) return
+    const data = await guardianInviteApi.list(token)
+    setGuardianInvites(data.invites)
   }, [token])
 
   const stopLiveTracking = useCallback(() => {
@@ -144,7 +158,7 @@ export const UserDashboard = () => {
   useEffect(() => {
     const run = async () => {
       try {
-        await loadIncidents()
+        await Promise.all([loadIncidents(), loadGuardianInvites()])
       } catch (apiError) {
         const apiMessage =
           typeof apiError === 'object' && apiError && 'message' in apiError && typeof apiError.message === 'string'
@@ -154,7 +168,7 @@ export const UserDashboard = () => {
       }
     }
     void run()
-  }, [loadIncidents])
+  }, [loadIncidents, loadGuardianInvites])
 
   useEffect(() => {
     if (!token) return
@@ -284,6 +298,48 @@ export const UserDashboard = () => {
     }
   }
 
+  const onCreateGuardianInvite = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    setError('')
+    setMessage('')
+
+    if (!token) return
+    const name = guardianName.trim()
+    const email = guardianEmail.trim().toLowerCase()
+    const mobile = guardianMobile.trim()
+
+    if (!name || !email || !mobile) {
+      setError('Guardian name, email and mobile are required.')
+      return
+    }
+    if (!isValidEmail(email)) {
+      setError('Please provide a valid guardian email.')
+      return
+    }
+
+    try {
+      setInviteLoading(true)
+      const response = await guardianInviteApi.create(token, {
+        guardianName: name,
+        guardianEmail: email,
+        guardianMobile: mobile,
+      })
+      setMessage(`Guardian invite email sent to ${response.invite.guardianEmail}. Invite code: ${response.invite.inviteCode}`)
+      setGuardianName('')
+      setGuardianEmail('')
+      setGuardianMobile('')
+      await loadGuardianInvites()
+    } catch (apiError) {
+      const apiMessage =
+        typeof apiError === 'object' && apiError && 'message' in apiError && typeof apiError.message === 'string'
+          ? apiError.message
+          : 'Failed to create guardian invite.'
+      setError(apiMessage)
+    } finally {
+      setInviteLoading(false)
+    }
+  }
+
   return (
     <div className="space-y-6">
       <DashboardPanel
@@ -321,6 +377,61 @@ export const UserDashboard = () => {
           {loading ? 'Getting your location...' : 'Trigger SOS Alert'}
         </PrimaryButton>
       </form>
+
+      <section className="space-y-3">
+        <h3 className="text-xl font-semibold text-brand-pink">Guardian Management</h3>
+        <form className="space-y-3 rounded-xl border border-brand-border bg-brand-dark p-4 shadow-brand-soft" onSubmit={onCreateGuardianInvite}>
+          <FormField id="guardianName" label="Guardian Name">
+            <TextInput
+              id="guardianName"
+              onChange={(event) => setGuardianName(event.target.value)}
+              placeholder="Enter guardian full name"
+              value={guardianName}
+            />
+          </FormField>
+          <div className="grid gap-3 md:grid-cols-2">
+            <FormField id="guardianEmail" label="Guardian Email">
+              <TextInput
+                id="guardianEmail"
+                onChange={(event) => setGuardianEmail(event.target.value)}
+                placeholder="guardian@example.com"
+                type="email"
+                value={guardianEmail}
+              />
+            </FormField>
+            <FormField id="guardianMobile" label="Guardian Mobile">
+              <TextInput
+                id="guardianMobile"
+                onChange={(event) => setGuardianMobile(event.target.value)}
+                placeholder="9876543210"
+                value={guardianMobile}
+              />
+            </FormField>
+          </div>
+          <PrimaryButton disabled={inviteLoading} type="submit">
+            {inviteLoading ? 'Creating Invite...' : 'Add Guardian & Create Invite'}
+          </PrimaryButton>
+        </form>
+
+        {guardianInvites.length ? (
+          <div className="space-y-2">
+            {guardianInvites.map((invite) => (
+              <div className="rounded-lg border border-brand-border-soft/50 bg-brand-black/70 p-3 text-sm" key={invite.id}>
+                <p className="font-medium text-brand-pink">{invite.guardianName}</p>
+                <p className="text-brand-muted">{invite.guardianEmail} • {invite.guardianMobile}</p>
+                <p>Invite code: <span className="font-semibold">{invite.inviteCode}</span></p>
+                <p>Status: {invite.status}</p>
+                <p>Expires: {new Date(invite.expiresAt).toLocaleString()}</p>
+                <p className="text-xs text-brand-muted">
+                  Share this link: {window.location.origin}/guardian-accept?code={invite.inviteCode}
+                </p>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-sm text-brand-muted">No guardian invites yet.</p>
+        )}
+      </section>
 
       <section className="space-y-3">
         <h3 className="text-xl font-semibold text-brand-pink">My Incidents</h3>
