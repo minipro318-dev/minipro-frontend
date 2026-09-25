@@ -5,6 +5,7 @@ import { InlineAlert } from '../../../components/ui'
 import { useAuth } from '../../../hooks/useAuth'
 import { guardianInviteApi } from '../../../services/guardian-invite.api'
 import { incidentApi } from '../../../services/incident.api'
+import { createRealtimeSocket, type IncidentRealtimePayload } from '../../../services/realtime'
 import type { GuardianInvite } from '../../../types/guardian-invite.types'
 import type { Incident } from '../../../types/incident.types'
 
@@ -36,6 +37,30 @@ export const UserOverview = () => {
     }
     void run()
   }, [token])
+
+  useEffect(() => {
+    if (!token) return
+    const socket = createRealtimeSocket(token)
+
+    const onIncidentUpdate = (payload: IncidentRealtimePayload) => {
+      if (payload.incident.reportedById !== user?.id) return
+      setIncidents((previous) => {
+        const next = [payload.incident, ...previous.filter((incident) => incident.id !== payload.incident.id)]
+        return next.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+      })
+    }
+
+    socket.on('incident:created', onIncidentUpdate)
+    socket.on('incident:location-updated', onIncidentUpdate)
+    socket.on('incident:status-updated', onIncidentUpdate)
+
+    return () => {
+      socket.off('incident:created', onIncidentUpdate)
+      socket.off('incident:location-updated', onIncidentUpdate)
+      socket.off('incident:status-updated', onIncidentUpdate)
+      socket.disconnect()
+    }
+  }, [token, user?.id])
 
   useEffect(() => {
     if (!navigator.geolocation) {
@@ -81,7 +106,7 @@ export const UserOverview = () => {
         incident.status === 'ACTIVE'
           ? `SOS triggered (Incident #${incident.id})`
           : incident.status === 'RESOLVED'
-            ? `Incident #${incident.id} resolved`
+            ? `Incident #${incident.id} resolved by ${incident.resolvedByRole?.toLowerCase() ?? 'system'}`
             : `Incident #${incident.id} updated`,
       timestamp: incident.updatedAt,
       tone: (incident.status === 'ACTIVE' ? 'danger' : incident.status === 'RESOLVED' ? 'safe' : 'neutral') as ActivityTone,

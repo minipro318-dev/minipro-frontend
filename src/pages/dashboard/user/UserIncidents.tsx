@@ -1,37 +1,14 @@
-import { useMemo, useState, useEffect } from 'react'
+import { useMemo } from 'react'
+import { IncidentActions } from '../../../components/admin-command/IncidentActions'
 import { StatusBadge } from '../../../components/common/StatusBadge'
 import { IncidentMap } from '../../../components/incidents'
-import { InlineAlert, PrimaryButton } from '../../../components/ui'
+import { InlineAlert } from '../../../components/ui'
 import { useAuth } from '../../../hooks/useAuth'
-import { incidentApi } from '../../../services/incident.api'
-import type { Incident } from '../../../types/incident.types'
+import { useIncidents } from '../../../hooks/useIncidents'
 
 export const UserIncidents = () => {
   const { token } = useAuth()
-  const [incidents, setIncidents] = useState<Incident[]>([])
-  const [error, setError] = useState('')
-  const [message, setMessage] = useState('')
-
-  const loadIncidents = async () => {
-    if (!token) return
-    const data = await incidentApi.list(token)
-    setIncidents(data.incidents)
-  }
-
-  useEffect(() => {
-    const run = async () => {
-      try {
-        await loadIncidents()
-      } catch (apiError) {
-        const apiMessage =
-          typeof apiError === 'object' && apiError && 'message' in apiError && typeof apiError.message === 'string'
-            ? apiError.message
-            : 'Could not load incidents.'
-        setError(apiMessage)
-      }
-    }
-    void run()
-  }, [token])
+  const { incidents, error, message, setError, setMessage, resolveIncident, cancelIncident } = useIncidents(token)
 
   const summary = useMemo(() => {
     const active = incidents.filter((incident) => incident.status === 'ACTIVE').length
@@ -44,21 +21,16 @@ export const UserIncidents = () => {
     [incidents],
   )
 
-  const onCancelIncident = async (incidentId: number) => {
-    if (!token) return
+  const onResolveIncident = async (incidentId: number, resolutionNote?: string) => {
     setError('')
     setMessage('')
-    try {
-      await incidentApi.cancel(token, incidentId)
-      setMessage(`Incident #${incidentId} cancelled successfully.`)
-      await loadIncidents()
-    } catch (apiError) {
-      const apiMessage =
-        typeof apiError === 'object' && apiError && 'message' in apiError && typeof apiError.message === 'string'
-          ? apiError.message
-          : 'Failed to cancel incident.'
-      setError(apiMessage)
-    }
+    await resolveIncident(incidentId, resolutionNote)
+  }
+
+  const onCancelIncident = async (incidentId: number) => {
+    setError('')
+    setMessage('')
+    await cancelIncident(incidentId)
   }
 
   return (
@@ -112,10 +84,21 @@ export const UserIncidents = () => {
 
                 {incident.status === 'ACTIVE' ? (
                   <div className="mt-3">
-                    <PrimaryButton className="w-auto px-3 py-1 text-sm" onClick={() => void onCancelIncident(incident.id)} type="button">
-                      Cancel Incident
-                    </PrimaryButton>
+                    <IncidentActions
+                      incidentId={incident.id}
+                      onCancel={onCancelIncident}
+                      onResolve={onResolveIncident}
+                      resolveButtonLabel="Mark Emergency Resolved"
+                      status={incident.status}
+                    />
                   </div>
+                ) : null}
+                {incident.status === 'RESOLVED' ? (
+                  <p className="mt-3 text-xs text-[var(--color-brand-muted)]">
+                    Resolved by {incident.resolvedByRole ?? 'UNKNOWN'}
+                    {incident.resolvedAt ? ` on ${new Date(incident.resolvedAt).toLocaleString()}` : ''}
+                    {incident.resolutionNote ? ` • ${incident.resolutionNote}` : ''}
+                  </p>
                 ) : null}
 
                 {incident.locationLogs.length ? (

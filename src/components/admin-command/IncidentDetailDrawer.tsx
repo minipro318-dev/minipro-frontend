@@ -6,7 +6,7 @@ type IncidentDetailDrawerProps = {
   incident: Incident | null
   open: boolean
   onClose: () => void
-  onResolve: (incidentId: number) => Promise<void>
+  onResolve: (incidentId: number, resolutionNote?: string) => Promise<void>
   onCancel: (incidentId: number) => Promise<void>
 }
 
@@ -57,6 +57,16 @@ export const IncidentDetailDrawer = ({ incident, open, onClose, onResolve, onCan
           <div>
             <p className="text-xs uppercase tracking-wide text-[var(--color-brand-muted)]">Message</p>
             <p className="text-[var(--color-brand-text)]">{incident.description}</p>
+          </div>
+        ) : null}
+        {incident.status === 'RESOLVED' ? (
+          <div>
+            <p className="text-xs uppercase tracking-wide text-[var(--color-brand-muted)]">Resolution</p>
+            <p className="text-[var(--color-brand-text)]">
+              {incident.resolvedByRole ? `Resolved by ${incident.resolvedByRole}` : 'Resolved'}
+              {incident.resolvedAt ? ` on ${toLocalTime(incident.resolvedAt)}` : ''}
+            </p>
+            {incident.resolutionNote ? <p className="mt-1 text-xs text-[var(--color-brand-muted)]">{incident.resolutionNote}</p> : null}
           </div>
         ) : null}
       </div>

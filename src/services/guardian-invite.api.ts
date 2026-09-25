@@ -1,5 +1,5 @@
 import type { ApiError, LoginResponse } from '../types/auth.types'
-import type { GuardianInvite } from '../types/guardian-invite.types'
+import type { GuardianInvite, LinkedGuardian } from '../types/guardian-invite.types'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL
 
@@ -40,6 +40,28 @@ export const guardianInviteApi = {
     }),
   list: (token: string) =>
     request<{ invites: GuardianInvite[] }>('/guardian-invites', {
+      headers: { Authorization: `Bearer ${token}` },
+    }),
+  listLinked: (token: string) =>
+    request<{ guardians: LinkedGuardian[] }>('/guardian-invites/linked', {
+      headers: { Authorization: `Bearer ${token}` },
+    }),
+  updateLinked: (
+    token: string,
+    guardianId: number,
+    payload: { guardianName?: string; guardianEmail?: string; guardianMobile?: string },
+  ) =>
+    request<{ message: string; guardian: LinkedGuardian }>(`/guardian-invites/linked/${guardianId}`, {
+      method: 'PATCH',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    }),
+  removeLinked: (token: string, guardianId: number) =>
+    request<{ message: string }>(`/guardian-invites/linked/${guardianId}`, {
+      method: 'DELETE',
       headers: { Authorization: `Bearer ${token}` },
     }),
   accept: (payload: {

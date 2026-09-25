@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
+import { IncidentActions } from '../../components/admin-command/IncidentActions'
 import { IncidentMap } from '../../components/incidents'
 import { getGuardianSummary } from '../../components/guardian/guardian-data'
 import { StatusBadge } from '../../components/common/StatusBadge'
@@ -22,7 +23,7 @@ const timelineEvents = (incident: Incident) => {
 
 export const GuardianDashboard = () => {
   const { token } = useAuth()
-  const { incidents, loading, error } = useIncidents(token)
+  const { incidents, loading, error, message, setError, setMessage, resolveIncident } = useIncidents(token)
   const [filters, setFilters] = useState({ search: '', status: 'ALL', date: '' })
   const [searchParams, setSearchParams] = useSearchParams()
   const [selectedIncidentId, setSelectedIncidentId] = useState<number | null>(null)
@@ -79,6 +80,12 @@ export const GuardianDashboard = () => {
     })
   }
 
+  const onResolveIncident = async (incidentId: number, resolutionNote?: string) => {
+    setError('')
+    setMessage('')
+    await resolveIncident(incidentId, resolutionNote)
+  }
+
   return (
     <div className="space-y-4">
       <section className="rounded-xl border border-[var(--color-brand-border)] bg-[var(--color-brand-dark)] p-5">
@@ -87,6 +94,7 @@ export const GuardianDashboard = () => {
       </section>
 
       {error ? <InlineAlert message={error} /> : null}
+      {message ? <p className="rounded-md border border-[var(--color-brand-border)] bg-[var(--color-brand-pink-light)] px-3 py-2 text-sm text-[var(--color-brand-pink)]">{message}</p> : null}
       {loading ? <section className="rounded-xl border border-[var(--color-brand-border)] bg-[var(--color-brand-dark)] p-4 text-sm text-[var(--color-brand-muted)]">Loading incidents…</section> : null}
 
       {!loading ? (
@@ -266,6 +274,27 @@ export const GuardianDashboard = () => {
                       </div>
                     ))}
                   </div>
+                  {selectedIncident.status === 'ACTIVE' ? (
+                    <IncidentActions
+                      allowCancel={false}
+                      incidentId={selectedIncident.id}
+                      onResolve={onResolveIncident}
+                      resolveButtonLabel="Mark Emergency Resolved"
+                      status={selectedIncident.status}
+                    />
+                  ) : null}
+                  {selectedIncident.status === 'RESOLVED' ? (
+                    <div className="mt-4 rounded-md border border-[var(--color-brand-border)] bg-[var(--color-brand-dark)] p-3 text-sm">
+                      <p className="text-[var(--color-brand-text)]">
+                        Resolved by{' '}
+                        <span className="font-semibold">{selectedIncident.resolvedByRole ?? 'UNKNOWN'}</span>
+                        {selectedIncident.resolvedAt ? ` on ${new Date(selectedIncident.resolvedAt).toLocaleString()}` : ''}
+                      </p>
+                      {selectedIncident.resolutionNote ? (
+                        <p className="mt-1 text-[var(--color-brand-muted)]">{selectedIncident.resolutionNote}</p>
+                      ) : null}
+                    </div>
+                  ) : null}
                 </article>
               </div>
             </section>

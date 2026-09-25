@@ -11,7 +11,7 @@ type UseIncidentsResult = {
   setError: (value: string) => void
   setMessage: (value: string) => void
   refreshIncidents: () => Promise<void>
-  resolveIncident: (incidentId: number) => Promise<void>
+  resolveIncident: (incidentId: number, resolutionNote?: string) => Promise<void>
   cancelIncident: (incidentId: number) => Promise<void>
 }
 
@@ -78,19 +78,21 @@ export const useIncidents = (token: string | null): UseIncidentsResult => {
   }, [token])
 
   const resolveIncident = useCallback(
-    async (incidentId: number) => {
+    async (incidentId: number, resolutionNote?: string) => {
       if (!token) return
       setError('')
       setMessage('')
       try {
-        await incidentApi.resolve(token, incidentId)
+        const response = await incidentApi.resolve(token, incidentId, { resolutionNote })
+        setIncidents((previous) =>
+          previous.map((incident) => (incident.id === response.incident.id ? response.incident : incident)),
+        )
         setMessage(`Incident #${incidentId} marked as resolved.`)
-        await refreshIncidents()
       } catch (apiError) {
         setError(getApiMessage(apiError, 'Failed to resolve incident.'))
       }
     },
-    [token, refreshIncidents],
+    [token],
   )
 
   const cancelIncident = useCallback(
@@ -99,14 +101,16 @@ export const useIncidents = (token: string | null): UseIncidentsResult => {
       setError('')
       setMessage('')
       try {
-        await incidentApi.cancel(token, incidentId)
+        const response = await incidentApi.cancel(token, incidentId)
+        setIncidents((previous) =>
+          previous.map((incident) => (incident.id === response.incident.id ? response.incident : incident)),
+        )
         setMessage(`Incident #${incidentId} cancelled.`)
-        await refreshIncidents()
       } catch (apiError) {
         setError(getApiMessage(apiError, 'Failed to cancel incident.'))
       }
     },
-    [token, refreshIncidents],
+    [token],
   )
 
   return {
@@ -121,4 +125,3 @@ export const useIncidents = (token: string | null): UseIncidentsResult => {
     cancelIncident,
   }
 }
-

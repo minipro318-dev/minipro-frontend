@@ -1,4 +1,5 @@
 export type IncidentStatus = 'ACTIVE' | 'PENDING' | 'RESOLVED' | 'CANCELLED'
+export type IncidentResolvedBy = 'USER' | 'GUARDIAN' | 'ADMIN'
 
 export type IncidentActor = {
   id: number
@@ -27,7 +28,9 @@ export type Incident = {
   status: IncidentStatus
   reportedById: number
   resolvedById: number | null
+  resolvedByRole: IncidentResolvedBy | null
   resolvedAt: string | null
+  resolutionNote: string | null
   createdAt: string
   updatedAt: string
   reportedBy: IncidentActor

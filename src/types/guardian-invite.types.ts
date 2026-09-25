@@ -13,3 +13,13 @@ export type GuardianInvite = {
   createdAt: string
   updatedAt: string
 }
+
+export type LinkedGuardian = {
+  id: number
+  name: string
+  email: string
+  mobile: string | null
+  role: 'GUARDIAN'
+  status: boolean
+  linkedAt: string
+}

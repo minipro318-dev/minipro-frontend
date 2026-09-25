@@ -18,6 +18,8 @@ export type IncidentRealtimePayload = {
   locationTimestamp?: string | null
   createdAt: string
   status: 'ACTIVE' | 'RESOLVED' | 'CANCELLED'
+  resolvedByRole?: 'USER' | 'GUARDIAN' | 'ADMIN' | null
+  resolutionNote?: string | null
   incident: Incident
 }
 

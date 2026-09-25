@@ -1,5 +1,6 @@
 import { useMemo } from 'react'
 import { Link } from 'react-router-dom'
+import { IncidentActions } from '../../../components/admin-command/IncidentActions'
 import { StatusBadge } from '../../../components/common/StatusBadge'
 import { getGuardianSummary } from '../../../components/guardian/guardian-data'
 import { InlineAlert } from '../../../components/ui'
@@ -8,7 +9,7 @@ import { useIncidents } from '../../../hooks/useIncidents'
 
 export const GuardianOverview = () => {
   const { token } = useAuth()
-  const { incidents, loading, error } = useIncidents(token)
+  const { incidents, loading, error, message, setError, setMessage, resolveIncident } = useIncidents(token)
 
   const summary = useMemo(() => getGuardianSummary(incidents), [incidents])
   const activeIncidents = useMemo(() => incidents.filter((incident) => incident.status === 'ACTIVE'), [incidents])
@@ -16,6 +17,12 @@ export const GuardianOverview = () => {
     () => [...incidents].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).slice(0, 8),
     [incidents],
   )
+
+  const onResolveIncident = async (incidentId: number, resolutionNote?: string) => {
+    setError('')
+    setMessage('')
+    await resolveIncident(incidentId, resolutionNote)
+  }
 
   return (
     <div className="space-y-4">
@@ -25,6 +32,7 @@ export const GuardianOverview = () => {
       </section>
 
       {error ? <InlineAlert message={error} /> : null}
+      {message ? <p className="rounded-md border border-[var(--color-brand-border)] bg-[var(--color-brand-pink-light)] px-3 py-2 text-sm text-[var(--color-brand-pink)]">{message}</p> : null}
       {loading ? <section className="rounded-xl border border-[var(--color-brand-border)] bg-[var(--color-brand-dark)] p-4 text-sm text-[var(--color-brand-muted)]">Loading guardian data…</section> : null}
 
       {!loading ? (
@@ -84,6 +92,13 @@ export const GuardianOverview = () => {
                       <Link className="mt-3 inline-block rounded-md bg-[var(--color-brand-pink)] px-3 py-1.5 text-sm font-semibold text-white hover:opacity-90" to={`/dashboard/guardian/incidents?incidentId=${incident.id}`}>
                         View Incident
                       </Link>
+                      <IncidentActions
+                        allowCancel={false}
+                        incidentId={incident.id}
+                        onResolve={onResolveIncident}
+                        resolveButtonLabel="Mark Emergency Resolved"
+                        status={incident.status}
+                      />
                     </article>
                   )
                 })}
@@ -121,6 +136,9 @@ export const GuardianOverview = () => {
                               label={incident.status}
                               tone={incident.status === 'ACTIVE' ? 'danger' : incident.status === 'RESOLVED' ? 'safe' : 'neutral'}
                             />
+                            {incident.status === 'RESOLVED' && incident.resolvedByRole ? (
+                              <p className="mt-1 text-[11px] text-[var(--color-brand-muted)]">By {incident.resolvedByRole}</p>
+                            ) : null}
                           </td>
                           <td className="py-3 text-[var(--color-brand-muted)]">{incident.locationLogs[0]?.address ?? 'Unavailable'}</td>
                           <td className="py-3">

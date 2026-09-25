@@ -55,9 +55,11 @@ export const incidentApi = {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
     }),
-  resolve: (token: string, incidentId: number) =>
+  resolve: (token: string, incidentId: number, payload?: { resolutionNote?: string }) =>
     request<{ message: string; incident: Incident }>(`/incidents/${incidentId}/resolve`, token, {
       method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload ?? {}),
     }),
   cancel: (token: string, incidentId: number) =>
     request<{ message: string; incident: Incident }>(`/incidents/${incidentId}/cancel`, token, {
