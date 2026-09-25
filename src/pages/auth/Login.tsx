@@ -53,9 +53,10 @@ export const Login = () => {
   }
 
   return (
-    <form className="space-y-4" onSubmit={onSubmit}>
+    <form className="space-y-5" onSubmit={onSubmit}>
       <FormField id="email" label="Email">
         <TextInput
+          className="rounded-xl border-[var(--color-brand-border)] bg-white/95 px-4 py-2.5 text-[var(--color-brand-text)] shadow-sm transition focus:border-[var(--color-brand-pink)] focus:ring-2 focus:ring-[var(--color-brand-pink)]/20"
           id="email"
           onChange={(e) => setEmail(e.target.value)}
           placeholder="you@example.com"
@@ -65,6 +66,7 @@ export const Login = () => {
       </FormField>
       <FormField id="password" label="Password">
         <TextInput
+          className="rounded-xl border-[var(--color-brand-border)] bg-white/95 px-4 py-2.5 text-[var(--color-brand-text)] shadow-sm transition focus:border-[var(--color-brand-pink)] focus:ring-2 focus:ring-[var(--color-brand-pink)]/20"
           id="password"
           onChange={(e) => setPassword(e.target.value)}
           placeholder="********"
@@ -73,10 +75,12 @@ export const Login = () => {
         />
       </FormField>
       {error ? <InlineAlert message={error} /> : null}
-      <PrimaryButton disabled={loading} type="submit">
+      <PrimaryButton className="rounded-xl py-2.5 shadow-[0_10px_24px_rgba(205,22,119,0.3)]" disabled={loading} type="submit">
         {loading ? 'Logging in...' : 'Login'}
       </PrimaryButton>
-      <AuthSwitchText linkText="Register here" text="New user?" to="/register" />
+      <div className="pt-1">
+        <AuthSwitchText linkText="Register here" text="New user?" to="/register" />
+      </div>
     </form>
   )
 }
