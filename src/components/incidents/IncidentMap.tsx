@@ -1,17 +1,8 @@
 import { useMemo } from 'react'
-import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { MapContainer, Marker, Polyline, Popup, TileLayer } from 'react-leaflet'
-import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png'
-import markerIcon from 'leaflet/dist/images/marker-icon.png'
-import markerShadow from 'leaflet/dist/images/marker-shadow.png'
+import { getLocationPinIcon } from '../maps/map-marker-icons'
 import type { Incident } from '../../types/incident.types'
-
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: markerIcon2x,
-  iconUrl: markerIcon,
-  shadowUrl: markerShadow,
-})
 
 type IncidentMapProps = {
   incident: Incident
@@ -42,10 +33,16 @@ export const IncidentMap = ({ incident }: IncidentMapProps) => {
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
-          <Marker position={[initialLocation.latitude, initialLocation.longitude]}>
+          <Marker
+            icon={getLocationPinIcon('var(--color-brand-salmon)', 26)}
+            position={[initialLocation.latitude, initialLocation.longitude]}
+          >
             <Popup>Initial SOS location</Popup>
           </Marker>
-          <Marker position={[latestLocation.latitude, latestLocation.longitude]}>
+          <Marker
+            icon={getLocationPinIcon('var(--color-brand-pink)', 30)}
+            position={[latestLocation.latitude, latestLocation.longitude]}
+          >
             <Popup>Latest location</Popup>
           </Marker>
           {points.length > 1 ? <Polyline pathOptions={{ color: '#f3b5a9' }} positions={points} /> : null}

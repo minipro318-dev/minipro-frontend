@@ -1,18 +1,9 @@
 import { Fragment, useEffect, useMemo } from 'react'
-import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { CircleMarker, MapContainer, Marker, TileLayer, useMap } from 'react-leaflet'
-import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png'
-import markerIcon from 'leaflet/dist/images/marker-icon.png'
-import markerShadow from 'leaflet/dist/images/marker-shadow.png'
 import type { Incident } from '../../types/incident.types'
+import { getLocationPinIcon } from '../maps/map-marker-icons'
 import { markerColorForStatus } from './incident-ui'
-
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: markerIcon2x,
-  iconUrl: markerIcon,
-  shadowUrl: markerShadow,
-})
 
 type IncidentMapPanelProps = {
   incidents: Incident[]
@@ -65,7 +56,10 @@ export const IncidentMapPanel = ({ incidents, selectedIncidentId }: IncidentMapP
 
           return (
             <Fragment key={incident.id}>
-              <Marker position={[latest.latitude, latest.longitude]} />
+              <Marker
+                icon={getLocationPinIcon(color, selected ? 30 : 26)}
+                position={[latest.latitude, latest.longitude]}
+              />
               {selected ? (
                 <CircleMarker
                   center={[latest.latitude, latest.longitude]}
@@ -73,7 +67,6 @@ export const IncidentMapPanel = ({ incidents, selectedIncidentId }: IncidentMapP
                   radius={18}
                 />
               ) : null}
-              <CircleMarker center={[latest.latitude, latest.longitude]} pathOptions={{ color, fillColor: color, fillOpacity: 0.9 }} radius={6} />
             </Fragment>
           )
         })}

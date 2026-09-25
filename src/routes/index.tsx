@@ -14,6 +14,7 @@ import { GuardianLinkedUsers } from '../pages/dashboard/guardian/GuardianLinkedU
 import { GuardianSupport } from '../pages/dashboard/guardian/GuardianSupport'
 import { UserOverview } from '../pages/dashboard/user/UserOverview'
 import { UserSosCenter } from '../pages/dashboard/user/UserSosCenter'
+import { UserNearbyHelp } from '../pages/dashboard/user/UserNearbyHelp'
 import { UserGuardianManagement } from '../pages/dashboard/user/UserGuardianManagement'
 import { UserIncidents } from '../pages/dashboard/user/UserIncidents'
 import { UserSafetyResources } from '../pages/dashboard/user/UserSafetyResources'
@@ -47,6 +48,7 @@ export const AppRoutes = () => (
         <Route element={<RoleRoute allow={['END_USER']} />}>
           <Route element={<UserOverview />} path="/dashboard/user/overview" />
           <Route element={<UserSosCenter />} path="/dashboard/user/sos" />
+          <Route element={<UserNearbyHelp />} path="/dashboard/user/nearby-help" />
           <Route element={<UserGuardianManagement />} path="/dashboard/user/guardians" />
           <Route element={<UserIncidents />} path="/dashboard/user/incidents" />
           <Route element={<UserSafetyResources />} path="/dashboard/user/resources" />
