@@ -1,7 +1,7 @@
 import { Fragment, useEffect, useMemo } from 'react'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
-import { CircleMarker, MapContainer, Marker, Popup, TileLayer, useMap } from 'react-leaflet'
+import { CircleMarker, MapContainer, Marker, TileLayer, useMap } from 'react-leaflet'
 import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png'
 import markerIcon from 'leaflet/dist/images/marker-icon.png'
 import markerShadow from 'leaflet/dist/images/marker-shadow.png'
@@ -51,7 +51,7 @@ export const IncidentMapPanel = ({ incidents, selectedIncidentId }: IncidentMapP
       : FallbackCenter
 
   return (
-    <div className="h-[62vh] min-h-[420px] overflow-hidden rounded-xl border border-[#252525] bg-[#111111]">
+    <div className="h-[62vh] min-h-[420px] overflow-hidden rounded-xl border border-[var(--color-brand-border)] bg-[var(--color-brand-dark)]">
       <MapContainer center={center} style={{ height: '100%', width: '100%' }} zoom={mapped.length ? 12 : 5}>
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
@@ -65,18 +65,11 @@ export const IncidentMapPanel = ({ incidents, selectedIncidentId }: IncidentMapP
 
           return (
             <Fragment key={incident.id}>
-              <Marker position={[latest.latitude, latest.longitude]}>
-                <Popup>
-                  <p className="font-semibold">{incident.title}</p>
-                  <p>Incident #{incident.id}</p>
-                  <p>Status: {incident.status}</p>
-                  <p>{latest.address ?? 'Address not available'}</p>
-                </Popup>
-              </Marker>
+              <Marker position={[latest.latitude, latest.longitude]} />
               {selected ? (
                 <CircleMarker
                   center={[latest.latitude, latest.longitude]}
-                  pathOptions={{ color: '#F2A093', fillColor: '#F2A093', fillOpacity: 0.25 }}
+                  pathOptions={{ color: 'var(--color-brand-pink)', fillColor: 'var(--color-brand-pink)', fillOpacity: 0.25 }}
                   radius={18}
                 />
               ) : null}

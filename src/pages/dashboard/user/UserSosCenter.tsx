@@ -216,26 +216,26 @@ export const UserSosCenter = () => {
 
   return (
     <div className="mx-auto w-full max-w-3xl space-y-4">
-      <section className="rounded-xl border border-[#2a2a2a] bg-[#111111] p-5">
-        <h2 className="text-2xl font-semibold text-[#F7E8E4]">SOS Center</h2>
-        <p className="mt-1 text-sm text-[#A8A29E]">Trigger SOS with automatic location detection and live location sharing.</p>
+      <section className="rounded-xl border border-[var(--color-brand-border)] bg-[var(--color-brand-dark)] p-5">
+        <h2 className="text-2xl font-semibold text-[var(--color-brand-text)]">SOS Center</h2>
+        <p className="mt-1 text-sm text-[var(--color-brand-muted)]">Trigger SOS with automatic location detection and live location sharing.</p>
       </section>
 
       {activeIncident ? (
-        <section className="rounded-xl border border-red-600/40 bg-red-950/20 p-4">
+        <section className="rounded-xl border border-[var(--color-brand-pink)]/40 bg-[var(--color-brand-pink-light)] p-4">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div>
-              <p className="text-lg font-semibold text-red-200">SOS ACTIVE</p>
-              <p className="text-sm text-red-100/80">Live location sharing is active for Incident #{activeIncident.id}</p>
+              <p className="text-lg font-semibold text-[var(--color-brand-pink)]">SOS ACTIVE</p>
+              <p className="text-sm text-[var(--color-brand-salmon)]">Live location sharing is active for Incident #{activeIncident.id}</p>
             </div>
             <StatusBadge label="Emergency Active" tone="danger" />
           </div>
           <div className="mt-3 flex flex-wrap gap-2">
-            <Link className="rounded-md border border-red-300/30 px-3 py-2 text-sm hover:bg-red-950/30" to="/dashboard/user/incidents">
+            <Link className="rounded-md border border-[var(--color-brand-border)] px-3 py-2 text-sm hover:bg-[var(--color-brand-pink-light)]" to="/dashboard/user/incidents">
               View Incident
             </Link>
             <button
-              className="rounded-md border border-red-300/30 px-3 py-2 text-sm hover:bg-red-950/30"
+              className="rounded-md border border-[var(--color-brand-border)] px-3 py-2 text-sm hover:bg-[var(--color-brand-pink-light)]"
               onClick={() => void onCancelActiveIncident()}
               type="button"
             >
@@ -245,10 +245,10 @@ export const UserSosCenter = () => {
         </section>
       ) : null}
 
-      <form className="space-y-4 rounded-xl border border-[#42302d] bg-[#111111] p-5" onSubmit={onTriggerSos}>
+      <form className="space-y-4 rounded-xl border border-[var(--color-brand-border)] bg-[var(--color-brand-dark)] p-5" onSubmit={onTriggerSos}>
         <div>
-          <p className="text-xl font-semibold text-[#F7E8E4]">Emergency SOS</p>
-          <p className="text-sm text-[#A8A29E]">Use this only in emergency situations.</p>
+          <p className="text-xl font-semibold text-[var(--color-brand-text)]">Emergency SOS</p>
+          <p className="text-sm text-[var(--color-brand-muted)]">Use this only in emergency situations.</p>
         </div>
         <FormField id="title" label="Title">
           <TextInput id="title" onChange={(event) => setTitle(event.target.value)} value={title} />
@@ -257,31 +257,31 @@ export const UserSosCenter = () => {
           <TextInput id="description" onChange={(event) => setDescription(event.target.value)} value={description} />
         </FormField>
 
-        <div className="grid gap-3 rounded-lg border border-[#2a2a2a] bg-[#161616] p-3 text-sm sm:grid-cols-2">
+        <div className="grid gap-3 rounded-lg border border-[var(--color-brand-border)] bg-[var(--color-brand-black-soft)] p-3 text-sm sm:grid-cols-2">
           <div>
-            <p className="text-xs uppercase tracking-widest text-[#A8A29E]">Location</p>
-            <p className="text-[#F7E8E4]">{locationState === 'ready' ? 'Current location available' : 'Will detect on trigger'}</p>
+            <p className="text-xs uppercase tracking-widest text-[var(--color-brand-muted)]">Location</p>
+            <p className="text-[var(--color-brand-text)]">{locationState === 'ready' ? 'Current location available' : 'Will detect on trigger'}</p>
           </div>
           <div>
-            <p className="text-xs uppercase tracking-widest text-[#A8A29E]">Guardians</p>
-            <p className="text-[#F7E8E4]">{connectedGuardians} connected</p>
+            <p className="text-xs uppercase tracking-widest text-[var(--color-brand-muted)]">Guardians</p>
+            <p className="text-[var(--color-brand-text)]">{connectedGuardians} connected</p>
           </div>
           <div>
-            <p className="text-xs uppercase tracking-widest text-[#A8A29E]">Live Tracking</p>
-            <p className="text-[#F7E8E4]">{trackingIncidentId ? 'Active' : 'Inactive'}</p>
+            <p className="text-xs uppercase tracking-widest text-[var(--color-brand-muted)]">Live Tracking</p>
+            <p className="text-[var(--color-brand-text)]">{trackingIncidentId ? 'Active' : 'Inactive'}</p>
           </div>
           <div>
-            <p className="text-xs uppercase tracking-widest text-[#A8A29E]">GPS</p>
-            <p className="text-[#F7E8E4]">
+            <p className="text-xs uppercase tracking-widest text-[var(--color-brand-muted)]">GPS</p>
+            <p className="text-[var(--color-brand-text)]">
               {lastKnownLocation ? `Accuracy ${lastKnownLocation.accuracy ?? 'N/A'}` : 'Waiting for location'}
             </p>
           </div>
         </div>
 
         {error ? <InlineAlert message={error} /> : null}
-        {message ? <p className="rounded-md border border-emerald-500/60 bg-emerald-950/40 px-3 py-2 text-sm text-emerald-200">{message}</p> : null}
+        {message ? <p className="rounded-md border border-[var(--color-brand-border)] bg-[var(--color-brand-pink-light)] px-3 py-2 text-sm text-[var(--color-brand-pink)]">{message}</p> : null}
         <button
-          className="rounded-md bg-[#F2A093] px-4 py-2 text-sm font-semibold text-black transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-70"
+          className="rounded-md bg-[var(--color-brand-pink)] px-4 py-2 text-sm font-semibold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-70"
           disabled={loading}
           type="submit"
         >
@@ -290,22 +290,22 @@ export const UserSosCenter = () => {
       </form>
 
       {confirmOpen ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/65 p-4">
-          <div className="w-full max-w-md rounded-xl border border-[#2d2d2d] bg-[#111111] p-5">
-            <h3 className="text-lg font-semibold text-[#F7E8E4]">Confirm emergency SOS?</h3>
-            <p className="mt-2 text-sm text-[#A8A29E]">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-brand-black/65 p-4">
+          <div className="w-full max-w-md rounded-xl border border-[var(--color-brand-border)] bg-[var(--color-brand-dark)] p-5">
+            <h3 className="text-lg font-semibold text-[var(--color-brand-text)]">Confirm emergency SOS?</h3>
+            <p className="mt-2 text-sm text-[var(--color-brand-muted)]">
               This will trigger an emergency incident and start live location sharing with authorized recipients.
             </p>
             <div className="mt-5 flex justify-end gap-2">
               <button
-                className="rounded-lg border border-[#363636] px-3 py-2 text-sm text-[#F7E8E4] hover:bg-[#1b1b1b]"
+                className="rounded-lg border border-[var(--color-brand-border)] px-3 py-2 text-sm text-[var(--color-brand-text)] hover:bg-[var(--color-brand-black-soft)]"
                 onClick={() => setConfirmOpen(false)}
                 type="button"
               >
                 Cancel
               </button>
               <button
-                className="rounded-lg bg-[#F2A093] px-3 py-2 text-sm font-semibold text-[#241916] hover:brightness-95"
+                className="rounded-lg bg-[var(--color-brand-pink)] px-3 py-2 text-sm font-semibold text-[white] hover:brightness-95"
                 onClick={() => {
                   setConfirmOpen(false)
                   void submitSos()

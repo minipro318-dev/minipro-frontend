@@ -83,13 +83,13 @@ export const UserGuardianManagement = () => {
 
   return (
     <div className="mx-auto w-full max-w-3xl space-y-4">
-      <section className="rounded-xl border border-[#2a2a2a] bg-[#111111] p-5">
-        <h2 className="text-2xl font-semibold text-[#F7E8E4]">Guardians</h2>
-        <p className="mt-1 text-sm text-[#A8A29E]">Manage trusted contacts who receive your emergency alerts.</p>
+      <section className="rounded-xl border border-[var(--color-brand-border)] bg-[var(--color-brand-dark)] p-5">
+        <h2 className="text-2xl font-semibold text-[var(--color-brand-text)]">Guardians</h2>
+        <p className="mt-1 text-sm text-[var(--color-brand-muted)]">Manage trusted contacts who receive your emergency alerts.</p>
       </section>
 
-      <form className="space-y-3 rounded-xl border border-[#2a2a2a] bg-[#111111] p-5" onSubmit={onCreateGuardianInvite}>
-        <h3 className="text-lg font-semibold text-[#F7E8E4]">Add Guardian</h3>
+      <form className="space-y-3 rounded-xl border border-[var(--color-brand-border)] bg-[var(--color-brand-dark)] p-5" onSubmit={onCreateGuardianInvite}>
+        <h3 className="text-lg font-semibold text-[var(--color-brand-text)]">Add Guardian</h3>
         <FormField id="guardianName" label="Guardian Name">
           <TextInput
             id="guardianName"
@@ -118,9 +118,9 @@ export const UserGuardianManagement = () => {
           </FormField>
         </div>
         {error ? <InlineAlert message={error} /> : null}
-        {message ? <p className="rounded-md border border-emerald-500/60 bg-emerald-950/40 px-3 py-2 text-sm text-emerald-200">{message}</p> : null}
+        {message ? <p className="rounded-md border border-[var(--color-brand-border)] bg-[var(--color-brand-pink-light)] px-3 py-2 text-sm text-[var(--color-brand-pink)]">{message}</p> : null}
         <button
-          className="rounded-md bg-[#F2A093] px-4 py-2 text-sm font-semibold text-black transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-70"
+          className="rounded-md bg-[var(--color-brand-pink)] px-4 py-2 text-sm font-semibold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-70"
           disabled={inviteLoading}
           type="submit"
         >
@@ -128,8 +128,8 @@ export const UserGuardianManagement = () => {
         </button>
       </form>
 
-      <section className="space-y-2 rounded-xl border border-[#2a2a2a] bg-[#111111] p-5">
-        <h3 className="text-lg font-semibold text-[#F7E8E4]">Invite History</h3>
+      <section className="space-y-2 rounded-xl border border-[var(--color-brand-border)] bg-[var(--color-brand-dark)] p-5">
+        <h3 className="text-lg font-semibold text-[var(--color-brand-text)]">Invite History</h3>
         {guardianInvites.length ? (
           <div className="space-y-2">
             {guardianInvites.map((invite) => {
@@ -137,17 +137,17 @@ export const UserGuardianManagement = () => {
                 invite.status === 'ACCEPTED' ? 'safe' : invite.status === 'PENDING' ? 'warning' : 'neutral'
               const inviteLabel = invite.status === 'CANCELLED' ? 'DECLINED' : invite.status
               return (
-                <article className="rounded-lg border border-[#2a2a2a] bg-[#161616] p-3 text-sm" key={invite.id}>
+                <article className="rounded-lg border border-[var(--color-brand-border)] bg-[var(--color-brand-black-soft)] p-3 text-sm" key={invite.id}>
                   <div className="flex flex-wrap items-start justify-between gap-2">
                     <div>
-                      <p className="font-medium text-[#F7E8E4]">{invite.guardianName}</p>
-                      <p className="text-[#A8A29E]">{invite.guardianEmail} • {invite.guardianMobile}</p>
+                      <p className="font-medium text-[var(--color-brand-text)]">{invite.guardianName}</p>
+                      <p className="text-[var(--color-brand-muted)]">{invite.guardianEmail} • {invite.guardianMobile}</p>
                     </div>
                     <StatusBadge label={inviteLabel} tone={inviteTone} />
                   </div>
-                  <div className="mt-2 grid gap-2 text-xs text-[#A8A29E] sm:grid-cols-2">
+                  <div className="mt-2 grid gap-2 text-xs text-[var(--color-brand-muted)] sm:grid-cols-2">
                     <p>
-                      Invite code: <span className="font-semibold text-[#F7E8E4]">{invite.inviteCode}</span>
+                      Invite code: <span className="font-semibold text-[var(--color-brand-text)]">{invite.inviteCode}</span>
                     </p>
                     <p>Expiry: {new Date(invite.expiresAt).toLocaleString()}</p>
                   </div>
@@ -156,7 +156,7 @@ export const UserGuardianManagement = () => {
             })}
           </div>
         ) : (
-          <p className="text-sm text-[#A8A29E]">No guardian invites yet.</p>
+          <p className="text-sm text-[var(--color-brand-muted)]">No guardian invites yet.</p>
         )}
       </section>
     </div>

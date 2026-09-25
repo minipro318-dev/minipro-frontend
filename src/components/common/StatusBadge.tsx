@@ -6,10 +6,10 @@ type StatusBadgeProps = {
 }
 
 const toneClasses: Record<StatusTone, string> = {
-  safe: 'border-emerald-500/40 bg-emerald-950/40 text-emerald-200',
-  warning: 'border-amber-500/40 bg-amber-950/40 text-amber-200',
-  danger: 'border-red-500/40 bg-red-950/40 text-red-200',
-  neutral: 'border-zinc-500/40 bg-zinc-900/60 text-zinc-200',
+  safe: 'border-[var(--color-brand-border)] bg-[var(--color-brand-pink-light)] text-[var(--color-brand-pink)]',
+  warning: 'border-[var(--color-brand-border-soft)] bg-[var(--color-brand-pink-soft)] text-[var(--color-brand-salmon)]',
+  danger: 'border-[var(--color-brand-pink)] bg-[var(--color-brand-pink)] text-white',
+  neutral: 'border-[var(--color-brand-border)] bg-[var(--color-brand-black-soft)] text-[var(--color-brand-pink)]',
 }
 
 export const StatusBadge = ({ label, tone = 'neutral' }: StatusBadgeProps) => (
@@ -17,4 +17,3 @@ export const StatusBadge = ({ label, tone = 'neutral' }: StatusBadgeProps) => (
     {label}
   </span>
 )
-

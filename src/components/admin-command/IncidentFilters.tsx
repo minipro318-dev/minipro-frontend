@@ -14,11 +14,11 @@ export const IncidentFilters = ({ filters, types, onChange }: IncidentFiltersPro
   }
 
   return (
-    <section className="sticky top-0 z-20 rounded-xl bg-[#111111] p-3 shadow-[0_6px_24px_rgba(0,0,0,0.2)]">
+    <section className="sticky top-0 z-20 rounded-xl bg-[var(--color-brand-dark)] p-3 shadow-[0_6px_24px_rgba(0,0,0,0.2)]">
       <div className="grid gap-3 md:grid-cols-12">
         <div className="md:col-span-3">
           <input
-            className="w-full rounded-lg border border-[#2a2a2a] bg-[#161616] px-3 py-2 text-sm text-[#F7E8E4] outline-none placeholder:text-[#7a7573] focus:border-[#F2A093]"
+            className="w-full rounded-lg border border-[var(--color-brand-border)] bg-[var(--color-brand-black-soft)] px-3 py-2 text-sm text-[var(--color-brand-text)] outline-none placeholder:text-[#7a7573] focus:border-[var(--color-brand-pink)]"
             onChange={(event) => setField('search', event.target.value)}
             placeholder="Search by ID, user, location..."
             value={filters.search}
@@ -32,8 +32,8 @@ export const IncidentFilters = ({ filters, types, onChange }: IncidentFiltersPro
               <button
                 className={`rounded-lg px-3 py-2 text-xs font-medium transition ${
                   selected
-                    ? 'bg-[#F2A093] text-[#1b1412]'
-                    : 'bg-[#161616] text-[#F7E8E4] hover:bg-[#1f1f1f]'
+                    ? 'bg-[var(--color-brand-pink)] text-white'
+                    : 'bg-[var(--color-brand-black-soft)] text-[var(--color-brand-text)] hover:bg-[var(--color-brand-pink-light)]'
                 }`}
                 key={status}
                 onClick={() => setField('status', status)}
@@ -47,7 +47,7 @@ export const IncidentFilters = ({ filters, types, onChange }: IncidentFiltersPro
 
         <div className="md:col-span-2">
           <select
-            className="w-full rounded-lg border border-[#2a2a2a] bg-[#161616] px-3 py-2 text-xs text-[#F7E8E4] outline-none focus:border-[#F2A093]"
+            className="w-full rounded-lg border border-[var(--color-brand-border)] bg-[var(--color-brand-black-soft)] px-3 py-2 text-xs text-[var(--color-brand-text)] outline-none focus:border-[var(--color-brand-pink)]"
             onChange={(event) => setField('type', event.target.value)}
             value={filters.type}
           >
@@ -62,7 +62,7 @@ export const IncidentFilters = ({ filters, types, onChange }: IncidentFiltersPro
 
         <div className="md:col-span-1">
           <input
-            className="w-full rounded-lg border border-[#2a2a2a] bg-[#161616] px-3 py-2 text-xs text-[#F7E8E4] outline-none focus:border-[#F2A093]"
+            className="w-full rounded-lg border border-[var(--color-brand-border)] bg-[var(--color-brand-black-soft)] px-3 py-2 text-xs text-[var(--color-brand-text)] outline-none focus:border-[var(--color-brand-pink)]"
             onChange={(event) => setField('date', event.target.value)}
             type="date"
             value={filters.date}
@@ -71,7 +71,7 @@ export const IncidentFilters = ({ filters, types, onChange }: IncidentFiltersPro
 
         <div className="md:col-span-1">
           <select
-            className="w-full rounded-lg border border-[#2a2a2a] bg-[#161616] px-3 py-2 text-xs text-[#F7E8E4] outline-none focus:border-[#F2A093]"
+            className="w-full rounded-lg border border-[var(--color-brand-border)] bg-[var(--color-brand-black-soft)] px-3 py-2 text-xs text-[var(--color-brand-text)] outline-none focus:border-[var(--color-brand-pink)]"
             onChange={(event) => setField('sort', event.target.value as IncidentFilterState['sort'])}
             value={filters.sort}
           >
@@ -83,4 +83,3 @@ export const IncidentFilters = ({ filters, types, onChange }: IncidentFiltersPro
     </section>
   )
 }
-

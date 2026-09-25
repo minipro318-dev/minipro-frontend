@@ -5,47 +5,47 @@
      BRAND BACKGROUNDS
      ========================= */
 
-  --color-brand-black: #000000;
-  --color-brand-black-soft: #080808;
-  --color-brand-dark: #111111;
+  --color-brand-black: #ffffff;
+  --color-brand-black-soft: #fff4fa;
+  --color-brand-dark: #ffffff;
 
   /* =========================
      BLUSH / PINK
      ========================= */
 
-  --color-brand-pink: #f7dad4;
-  --color-brand-pink-light: #fbe8e4;
-  --color-brand-pink-soft: #f3c9c1;
+  --color-brand-pink: #d9147a;
+  --color-brand-pink-light: #fbe3f0;
+  --color-brand-pink-soft: #f8c8e0;
 
   /* =========================
      PEACH / SALMON
      ========================= */
 
-  --color-brand-peach: #eaa092;
-  --color-brand-peach-light: #f3b5a9;
-  --color-brand-salmon: #d9897c;
+  --color-brand-peach: #e94fa1;
+  --color-brand-peach-light: #f48dc4;
+  --color-brand-salmon: #b90f66;
 
   /* =========================
      TEXT
      ========================= */
 
-  --color-brand-white: #ffffff;
-  --color-brand-offwhite: #fff8f6;
-  --color-brand-text: #f5f5f5;
-  --color-brand-muted: #cfc5c2;
+  --color-brand-white: #2f1a28;
+  --color-brand-offwhite: #3d2232;
+  --color-brand-text: #2f1a28;
+  --color-brand-muted: #7c6070;
 
   /* =========================
      BORDERS
      ========================= */
 
-  --color-brand-border: #d99a90;
-  --color-brand-border-soft: #9c6f68;
+  --color-brand-border: #efcbe0;
+  --color-brand-border-soft: #d99abf;
 
   /* =========================
      ACCENT
      ========================= */
 
-  --color-brand-accent: #e7a094;
+  --color-brand-accent: #e91e87;
 
   /* =========================
      TYPOGRAPHY
@@ -58,8 +58,8 @@
      SHADOWS
      ========================= */
 
-  --shadow-brand: 0 10px 40px rgba(0, 0, 0, 0.35);
-  --shadow-brand-soft: 0 10px 30px rgba(217, 137, 124, 0.15);
+  --shadow-brand: 0 10px 40px rgba(233, 30, 135, 0.08);
+  --shadow-brand-soft: 0 10px 30px rgba(233, 30, 135, 0.12);
 }
 
 @layer base {
@@ -70,7 +70,7 @@
   body {
     margin: 0;
     background: var(--color-brand-black);
-    color: var(--color-brand-white);
+    color: var(--color-brand-text);
     font-family: var(--font-body);
   }
 

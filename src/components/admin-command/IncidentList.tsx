@@ -10,9 +10,9 @@ type IncidentListProps = {
 export const IncidentList = ({ incidents, selectedIncidentId, onSelect }: IncidentListProps) => {
   if (!incidents.length) {
     return (
-      <div className="rounded-xl border border-[#252525] bg-[#111111] p-8 text-center">
-        <p className="text-lg font-medium text-[#F7E8E4]">No incidents found</p>
-        <p className="mt-1 text-sm text-[#A8A29E]">Try changing your filters or search query.</p>
+      <div className="rounded-xl border border-[var(--color-brand-border)] bg-[var(--color-brand-dark)] p-8 text-center">
+        <p className="text-lg font-medium text-[var(--color-brand-text)]">No incidents found</p>
+        <p className="mt-1 text-sm text-[var(--color-brand-muted)]">Try changing your filters or search query.</p>
       </div>
     )
   }

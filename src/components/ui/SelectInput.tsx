@@ -11,7 +11,7 @@ type SelectInputProps = SelectHTMLAttributes<HTMLSelectElement> & {
 
 export const SelectInput = ({ className, options, ...props }: SelectInputProps) => (
   <select
-    className={`w-full rounded-md border border-brand-border bg-brand-black px-3 py-2 outline-none focus:border-brand-peach ${className || ''}`.trim()}
+    className={`w-full rounded-md border border-brand-border bg-white px-3 py-2 text-brand-text outline-none focus:border-brand-pink ${className || ''}`.trim()}
     {...props}
   >
     {options.map((option) => (

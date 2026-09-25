@@ -46,17 +46,17 @@ export const AdminOverview = () => {
           <p className="text-sm text-brand-muted">Total Incidents</p>
           <p className="text-2xl font-bold text-brand-pink">{stats.total}</p>
         </div>
-        <div className="rounded-xl border border-red-500/40 bg-brand-dark p-4">
+        <div className="rounded-xl border border-[var(--color-brand-border)] bg-brand-dark p-4">
           <p className="text-sm text-brand-muted">Active</p>
-          <p className="text-2xl font-bold text-red-300">{stats.active}</p>
+          <p className="text-2xl font-bold text-[var(--color-brand-pink)]">{stats.active}</p>
         </div>
-        <div className="rounded-xl border border-emerald-500/40 bg-brand-dark p-4">
+        <div className="rounded-xl border border-[var(--color-brand-border)] bg-brand-dark p-4">
           <p className="text-sm text-brand-muted">Resolved</p>
-          <p className="text-2xl font-bold text-emerald-300">{stats.resolved}</p>
+          <p className="text-2xl font-bold text-[var(--color-brand-pink)]">{stats.resolved}</p>
         </div>
-        <div className="rounded-xl border border-zinc-500/40 bg-brand-dark p-4">
+        <div className="rounded-xl border border-[var(--color-brand-border)] bg-brand-dark p-4">
           <p className="text-sm text-brand-muted">Cancelled</p>
-          <p className="text-2xl font-bold text-zinc-300">{stats.cancelled}</p>
+          <p className="text-2xl font-bold text-[var(--color-brand-pink)]">{stats.cancelled}</p>
         </div>
       </section>
     </div>

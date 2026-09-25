@@ -98,10 +98,10 @@ export const AdminDashboard = () => {
       <IncidentFilters filters={filters} onChange={setFilters} types={incidentTypeOptions} />
 
       {error ? <InlineAlert message={error} /> : null}
-      {message ? <p className="rounded-md border border-emerald-500/60 bg-emerald-950/40 px-3 py-2 text-sm text-emerald-200">{message}</p> : null}
+      {message ? <p className="rounded-md border border-[var(--color-brand-border)] bg-[var(--color-brand-pink-light)] px-3 py-2 text-sm text-[var(--color-brand-pink)]">{message}</p> : null}
 
       {loading ? (
-        <div className="rounded-xl border border-[#252525] bg-[#111111] p-6 text-sm text-[#A8A29E]">Loading incidents…</div>
+        <div className="rounded-xl border border-[var(--color-brand-border)] bg-[var(--color-brand-dark)] p-6 text-sm text-[var(--color-brand-muted)]">Loading incidents…</div>
       ) : (
         <section className="grid gap-3 xl:grid-cols-10">
           <div className="xl:col-span-4">
@@ -111,7 +111,7 @@ export const AdminDashboard = () => {
               selectedIncidentId={selectedIncident?.id ?? null}
             />
           </div>
-          <div className="relative xl:col-span-6">
+          <div className="space-y-3 xl:col-span-6">
             <IncidentMapPanel incidents={filteredIncidents} selectedIncidentId={selectedIncident?.id ?? null} />
             <IncidentDetailDrawer
               incident={selectedIncident}

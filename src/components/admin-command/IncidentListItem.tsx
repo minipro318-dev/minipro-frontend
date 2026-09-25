@@ -11,23 +11,23 @@ export const IncidentListItem = ({ incident, selected, onSelect }: IncidentListI
   <button
     className={`w-full rounded-xl border px-3 py-3 text-left transition ${
       selected
-        ? 'border-[#F2A093] bg-[#1a1615] shadow-[0_10px_24px_rgba(242,160,147,0.1)]'
-        : 'border-[#252525] bg-[#111111] hover:border-[#343434] hover:bg-[#151515]'
+        ? 'border-[var(--color-brand-pink)] bg-[var(--color-brand-pink-light)] shadow-[0_8px_20px_rgba(217,20,122,0.12)]'
+        : 'border-[var(--color-brand-border)] bg-[var(--color-brand-dark)] hover:border-[var(--color-brand-border)] hover:bg-[var(--color-brand-black-soft)]'
     }`}
     onClick={() => onSelect(incident)}
     type="button"
   >
     <div className="flex items-start justify-between gap-3">
       <div>
-        <p className="text-sm font-medium text-[#F7E8E4]">{incident.title}</p>
-        <p className="text-xs text-[#A8A29E]">Incident #{incident.id}</p>
+        <p className="text-sm font-medium text-[var(--color-brand-text)]">{incident.title}</p>
+        <p className="text-xs text-[var(--color-brand-muted)]">Incident #{incident.id}</p>
       </div>
       <span className={`rounded-full px-2 py-1 text-[10px] font-semibold ${statusToneClasses(incident.status)}`}>
         {incident.status}
       </span>
     </div>
 
-    <div className="mt-3 grid grid-cols-2 gap-2 text-xs text-[#A8A29E]">
+    <div className="mt-3 grid grid-cols-2 gap-2 text-xs text-[var(--color-brand-muted)]">
       <p className="truncate">By: {incident.reportedBy?.name ?? 'Unknown'}</p>
       <p className="text-right">{toLocalTime(incident.createdAt)}</p>
       <p className="col-span-2 truncate">{incident.locationLogs[0]?.address ?? 'No address yet'}</p>
