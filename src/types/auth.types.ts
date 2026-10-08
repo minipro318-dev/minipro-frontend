@@ -12,6 +12,20 @@ export type AuthUser = {
   updatedAt: string
 }
 
+export type LinkedGuardianSummary = {
+  id: number
+  name: string
+  email: string
+  mobile: string | null
+  status: boolean
+  lastLogin: string | null
+  linkedAt: string
+}
+
+export type AdminEndUser = AuthUser & {
+  linkedGuardians: LinkedGuardianSummary[]
+}
+
 export type LoginResponse = {
   message: string
   token: string

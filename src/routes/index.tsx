@@ -8,6 +8,7 @@ import { Register } from '../pages/auth/Register'
 import { AcceptGuardianInvite } from '../pages/auth/AcceptGuardianInvite'
 import { AdminOverview } from '../pages/dashboard/admin/AdminOverview'
 import { AdminIncidents } from '../pages/dashboard/admin/AdminIncidents'
+import { AdminUsers } from '../pages/dashboard/admin/AdminUsers'
 import { GuardianOverview } from '../pages/dashboard/guardian/GuardianOverview'
 import { GuardianIncidents } from '../pages/dashboard/guardian/GuardianIncidents'
 import { GuardianLinkedUsers } from '../pages/dashboard/guardian/GuardianLinkedUsers'
@@ -36,6 +37,7 @@ export const AppRoutes = () => (
         <Route element={<RoleRoute allow={['ADMIN']} />}>
           <Route element={<AdminOverview />} path="/dashboard/admin/overview" />
           <Route element={<AdminIncidents />} path="/dashboard/admin/incidents" />
+          <Route element={<AdminUsers />} path="/dashboard/admin/users" />
           <Route element={<Navigate replace to="/dashboard/admin/overview" />} path="/dashboard/admin" />
         </Route>
         <Route element={<RoleRoute allow={['GUARDIAN']} />}>

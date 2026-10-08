@@ -1,4 +1,4 @@
-import type { ApiError, AuthUser, LoginResponse, RegisterPayload } from '../types/auth.types'
+import type { AdminEndUser, ApiError, AuthUser, LoginResponse, RegisterPayload } from '../types/auth.types'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL
 
@@ -37,6 +37,10 @@ export const authApi = {
     }),
   me: (token: string) =>
     request<{ user: AuthUser }>('/auth/me', {
+      headers: { Authorization: `Bearer ${token}` },
+    }),
+  listEndUsersWithGuardians: (token: string) =>
+    request<{ users: AdminEndUser[] }>('/auth/end-users', {
       headers: { Authorization: `Bearer ${token}` },
     }),
   logout: () =>
