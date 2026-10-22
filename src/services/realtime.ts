@@ -1,5 +1,6 @@
 import { io, type Socket } from 'socket.io-client'
 import type { Incident } from '../types/incident.types'
+import type { GuardianJourneyResponse, Journey } from '../types/journey.types'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL
 
@@ -21,6 +22,24 @@ export type IncidentRealtimePayload = {
   resolvedByRole?: 'USER' | 'GUARDIAN' | 'ADMIN' | null
   resolutionNote?: string | null
   incident: Incident
+}
+
+export type JourneyRealtimePayload = {
+  journeyId: number
+  userId: number
+  status: 'PLANNED' | 'ACTIVE' | 'CHECK_IN_REQUIRED' | 'COMPLETED' | 'CANCELLED' | 'ESCALATED'
+  checkInRequiredAt?: string | null
+  checkInExpiresAt?: string | null
+  escalatedAt?: string | null
+  updatedAt: string
+  journey: Journey
+}
+
+export type JourneyGuardianResponseRealtimePayload = {
+  journeyId: number
+  userId: number
+  createdAt: string
+  response: GuardianJourneyResponse
 }
 
 export const createRealtimeSocket = (token: string): Socket =>
