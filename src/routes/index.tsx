@@ -10,6 +10,7 @@ import { AdminOverview } from '../pages/dashboard/admin/AdminOverview'
 import { AdminIncidents } from '../pages/dashboard/admin/AdminIncidents'
 import { AdminUsers } from '../pages/dashboard/admin/AdminUsers'
 import { AdminJourneys } from '../pages/dashboard/admin/AdminJourneys'
+import { AdminSafetyAnalytics } from '../pages/dashboard/admin/AdminSafetyAnalytics'
 import { GuardianOverview } from '../pages/dashboard/guardian/GuardianOverview'
 import { GuardianIncidents } from '../pages/dashboard/guardian/GuardianIncidents'
 import { GuardianLinkedUsers } from '../pages/dashboard/guardian/GuardianLinkedUsers'
@@ -42,6 +43,7 @@ export const AppRoutes = () => (
           <Route element={<AdminIncidents />} path="/dashboard/admin/incidents" />
           <Route element={<AdminUsers />} path="/dashboard/admin/users" />
           <Route element={<AdminJourneys />} path="/dashboard/admin/journeys" />
+          <Route element={<AdminSafetyAnalytics />} path="/dashboard/admin/safety-analytics" />
           <Route element={<Navigate replace to="/dashboard/admin/overview" />} path="/dashboard/admin" />
         </Route>
         <Route element={<RoleRoute allow={['GUARDIAN']} />}>

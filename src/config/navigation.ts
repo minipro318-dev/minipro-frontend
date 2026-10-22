@@ -11,6 +11,7 @@ export const DASHBOARD_NAVIGATION: NavigationItem[] = [
   { section: 'INCIDENT MANAGEMENT', label: 'Incidents', path: '/dashboard/admin/incidents', roles: ['ADMIN'] },
   { section: 'INCIDENT MANAGEMENT', label: 'Users', path: '/dashboard/admin/users', roles: ['ADMIN'] },
   { section: 'INCIDENT MANAGEMENT', label: 'Safe Journeys', path: '/dashboard/admin/journeys', roles: ['ADMIN'] },
+  { section: 'INCIDENT MANAGEMENT', label: 'Safety Analytics', path: '/dashboard/admin/safety-analytics', roles: ['ADMIN'] },
   { section: 'INCIDENT MANAGEMENT', label: 'Responders', path: '/dashboard/admin/responders', roles: ['ADMIN'] },
 
   { section: 'MAIN NAVIGATION', label: 'Incidents', path: '/dashboard/guardian/incidents', roles: ['GUARDIAN'] },
