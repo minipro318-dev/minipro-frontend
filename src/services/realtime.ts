@@ -1,4 +1,5 @@
 import { io, type Socket } from 'socket.io-client'
+import type { AiSafetyRealtimePayload } from '../types/ai-safety-event.types'
 import type { Incident } from '../types/incident.types'
 import type { GuardianJourneyResponse, Journey } from '../types/journey.types'
 
@@ -41,6 +42,8 @@ export type JourneyGuardianResponseRealtimePayload = {
   createdAt: string
   response: GuardianJourneyResponse
 }
+
+export type AiSafetyEventRealtimePayload = AiSafetyRealtimePayload
 
 export const createRealtimeSocket = (token: string): Socket =>
   io(SOCKET_BASE_URL, {

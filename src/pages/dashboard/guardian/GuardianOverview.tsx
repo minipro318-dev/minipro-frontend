@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { IncidentActions } from '../../../components/admin-command/IncidentActions'
 import { StatusBadge } from '../../../components/common/StatusBadge'
@@ -6,10 +6,13 @@ import { getGuardianSummary } from '../../../components/guardian/guardian-data'
 import { InlineAlert } from '../../../components/ui'
 import { useAuth } from '../../../hooks/useAuth'
 import { useIncidents } from '../../../hooks/useIncidents'
+import { aiSafetyEventApi } from '../../../services/ai-safety-event.api'
+import type { AiSafetyEvent } from '../../../types/ai-safety-event.types'
 
 export const GuardianOverview = () => {
   const { token } = useAuth()
   const { incidents, loading, error, message, setError, setMessage, resolveIncident } = useIncidents(token)
+  const [aiEvents, setAiEvents] = useState<AiSafetyEvent[]>([])
 
   const summary = useMemo(() => getGuardianSummary(incidents), [incidents])
   const activeIncidents = useMemo(() => incidents.filter((incident) => incident.status === 'ACTIVE'), [incidents])
@@ -17,6 +20,23 @@ export const GuardianOverview = () => {
     () => [...incidents].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).slice(0, 8),
     [incidents],
   )
+  const escalatedAiEvents = useMemo(() => aiEvents.filter((event) => event.status === 'ESCALATED').slice(0, 5), [aiEvents])
+  const pendingAiEvents = useMemo(
+    () => aiEvents.filter((event) => event.status === 'AWAITING_CONFIRMATION' || event.status === 'DETECTED').length,
+    [aiEvents],
+  )
+
+  useEffect(() => {
+    const run = async () => {
+      if (!token) return
+      try {
+        const data = await aiSafetyEventApi.list(token, { limit: 30 })
+        setAiEvents(data.events)
+      } catch {
+      }
+    }
+    void run()
+  }, [token])
 
   const onResolveIncident = async (incidentId: number, resolutionNote?: string) => {
     setError('')
@@ -58,6 +78,37 @@ export const GuardianOverview = () => {
               <p className="mt-1 text-3xl font-semibold text-[var(--color-brand-pink)]">{summary.resolved}</p>
               <p className="text-xs text-[var(--color-brand-muted)]">Resolved</p>
             </article>
+            <article className="rounded-xl border border-amber-400/40 bg-[var(--color-brand-dark)] p-4">
+              <p className="text-xs uppercase tracking-widest text-[var(--color-brand-muted)]">AI Check-ins Pending</p>
+              <p className="mt-1 text-3xl font-semibold text-amber-300">{pendingAiEvents}</p>
+              <p className="text-xs text-[var(--color-brand-muted)]">Awaiting user safety confirmation</p>
+            </article>
+          </section>
+
+          <section className="rounded-xl border border-[var(--color-brand-border)] bg-[var(--color-brand-dark)] p-5">
+            <h3 className="text-lg font-semibold text-[var(--color-brand-text)]">Recent AI Escalations</h3>
+            {!escalatedAiEvents.length ? (
+              <p className="mt-2 text-sm text-[var(--color-brand-muted)]">No escalated AI safety events for linked users.</p>
+            ) : (
+              <div className="mt-3 space-y-2">
+                {escalatedAiEvents.map((event) => (
+                  <article className="rounded-lg border border-red-400/30 bg-red-500/5 p-3" key={event.id}>
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <p className="text-sm font-semibold text-[var(--color-brand-text)]">
+                        #{event.id} · {event.user?.name || 'Linked User'}
+                      </p>
+                      <StatusBadge label="ESCALATED" tone="danger" />
+                    </div>
+                    <p className="mt-1 text-xs text-[var(--color-brand-muted)]">
+                      Detected: {new Date(event.detectedAt).toLocaleString()}
+                    </p>
+                    <p className="mt-1 text-xs text-[var(--color-brand-muted)]">
+                      Linked SOS: {event.linkedIncidentId ? `#${event.linkedIncidentId}` : 'Pending'}
+                    </p>
+                  </article>
+                ))}
+              </div>
+            )}
           </section>
 
           <section

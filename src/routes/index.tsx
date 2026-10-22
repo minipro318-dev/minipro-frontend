@@ -25,6 +25,7 @@ import { UserSafetyResources } from '../pages/dashboard/user/UserSafetyResources
 import { UserSettings } from '../pages/dashboard/user/UserSettings'
 import { UserSupport } from '../pages/dashboard/user/UserSupport'
 import { UserSafeJourney } from '../pages/dashboard/user/UserSafeJourney'
+import { UserAiSafetyMonitoring } from '../pages/dashboard/user/UserAiSafetyMonitoring'
 
 export const AppRoutes = () => (
   <Routes>
@@ -58,6 +59,7 @@ export const AppRoutes = () => (
           <Route element={<UserOverview />} path="/dashboard/user/overview" />
           <Route element={<UserSosCenter />} path="/dashboard/user/sos" />
           <Route element={<UserSafeJourney />} path="/dashboard/user/journey" />
+          <Route element={<UserAiSafetyMonitoring />} path="/dashboard/user/ai-safety" />
           <Route element={<UserNearbyHelp />} path="/dashboard/user/nearby-help" />
           <Route element={<UserGuardianManagement />} path="/dashboard/user/guardians" />
           <Route element={<UserIncidents />} path="/dashboard/user/incidents" />

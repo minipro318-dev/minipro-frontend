@@ -73,3 +73,16 @@ export default defineConfig([
 ])
 
 ```
+
+## AI Safety Monitoring (camera + model)
+
+The user AI Safety page now uses live camera inference:
+
+- Camera access via `navigator.mediaDevices.getUserMedia()`
+- Pose model: TensorFlow.js MoveNet SinglePose Lightning (`@tensorflow-models/pose-detection`)
+- Live frame inference with fall-risk heuristic scoring
+- Automatic event creation only after sustained fall-like frames
+
+Notes:
+- Works on `localhost` or HTTPS secure contexts.
+- If camera permission is denied or no camera is available, the page shows a clear status/error and monitoring does not start.

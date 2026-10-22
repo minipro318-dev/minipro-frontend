@@ -22,6 +22,7 @@ export const DASHBOARD_NAVIGATION: NavigationItem[] = [
   { section: 'MAIN NAVIGATION', label: 'Overview', path: '/dashboard/user/overview', roles: ['END_USER'] },
   { section: 'MAIN NAVIGATION', label: 'SOS Center', path: '/dashboard/user/sos', roles: ['END_USER'] },
   { section: 'MAIN NAVIGATION', label: 'Safe Journey', path: '/dashboard/user/journey', roles: ['END_USER'] },
+  { section: 'MAIN NAVIGATION', label: 'AI Safety', path: '/dashboard/user/ai-safety', roles: ['END_USER'] },
   { section: 'MAIN NAVIGATION', label: 'Nearby Help', path: '/dashboard/user/nearby-help', roles: ['END_USER'] },
   { section: 'MAIN NAVIGATION', label: 'Guardians', path: '/dashboard/user/guardians', roles: ['END_USER'] },
   { section: 'MAIN NAVIGATION', label: 'My Incidents', path: '/dashboard/user/incidents', roles: ['END_USER'] },
