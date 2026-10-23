@@ -563,6 +563,91 @@ export const UserSafeJourney = () => {
     }
   }
 
+  const triggerJourneyTestEvent = async () => {
+    if (!token) return
+    const draftDestination = confirmedDestination
+
+    setError('')
+    setMessage('')
+    setLoading(true)
+
+    try {
+      const resolveTargetJourney = async () => {
+        if (activeJourneyRef.current) {
+          return activeJourneyRef.current
+        }
+        if (!draftDestination) {
+          throw new Error('Please confirm destination before triggering a test event.')
+        }
+        const confirmed = draftDestination
+
+        const current = await readCurrentPosition()
+        const startResponse = await journeyApi.start(token, {
+          title: `${journeyTitle.trim() || 'Safe Journey'} (Test Event)`,
+          originLatitude: current.latitude,
+          originLongitude: current.longitude,
+          destinationLatitude: confirmed.latitude,
+          destinationLongitude: confirmed.longitude,
+          destinationName: confirmed.address,
+          accuracy: current.accuracy ?? undefined,
+          locationTimestamp: current.locationTimestamp,
+        })
+
+        setJourneys((previous) => [
+          startResponse.journey,
+          ...previous.filter((item) => item.id !== startResponse.journey.id),
+        ])
+        setSelectedJourneyId(startResponse.journey.id)
+        activeJourneyRef.current = startResponse.journey
+        return startResponse.journey
+      }
+
+      const journey = await resolveTargetJourney()
+
+      let latestJourney = journey
+      const fallbackLatitude = draftDestination ? draftDestination.latitude : 12.9716
+      const fallbackLongitude = draftDestination ? draftDestination.longitude : 77.5946
+      const baseLatitude = Number.isFinite(journey.destinationLatitude)
+        ? journey.destinationLatitude
+        : fallbackLatitude
+      const baseLongitude = Number.isFinite(journey.destinationLongitude)
+        ? journey.destinationLongitude
+        : fallbackLongitude
+
+      const deviations = [
+        { latitude: baseLatitude + 0.018, longitude: baseLongitude + 0.018 },
+        { latitude: baseLatitude + 0.0195, longitude: baseLongitude + 0.0195 },
+        { latitude: baseLatitude + 0.021, longitude: baseLongitude + 0.021 },
+      ]
+
+      for (let index = 0; index < deviations.length; index += 1) {
+        const point = deviations[index]
+        const locationResponse = await journeyApi.addLocation(token, journey.id, {
+          latitude: point.latitude,
+          longitude: point.longitude,
+          accuracy: 8,
+          locationTimestamp: new Date(Date.now() + (index + 1) * 1000).toISOString(),
+          address: `Safe Journey test deviation point ${index + 1}`,
+        })
+        latestJourney = locationResponse.journey
+      }
+
+      setJourneys((previous) =>
+        previous.map((item) => (item.id === latestJourney.id ? latestJourney : item)),
+      )
+      setSelectedJourneyId(latestJourney.id)
+      setMessage(
+        latestJourney.status === 'CHECK_IN_REQUIRED'
+          ? 'Test event triggered: journey moved to CHECK-IN REQUIRED. Use Confirm Safety or wait for escalation.'
+          : 'Test locations submitted. If needed, click test event once more to force check-in.',
+      )
+    } catch (apiError) {
+      setError(getApiMessage(apiError, 'Could not trigger safe journey test event.'))
+    } finally {
+      setLoading(false)
+    }
+  }
+
   const confirmSafety = async (journeyId: number) => {
     if (!token) return
     try {
@@ -887,6 +972,14 @@ export const UserSafeJourney = () => {
                 type="button"
               >
                 Start Journey
+              </button>
+              <button
+                className="rounded-md border border-brand-pink px-3 py-2 text-sm font-semibold text-brand-pink hover:bg-brand-pink-light disabled:cursor-not-allowed disabled:opacity-70"
+                disabled={loading || (!confirmedDestination && !activeJourney)}
+                onClick={() => void triggerJourneyTestEvent()}
+                type="button"
+              >
+                Trigger Test Event
               </button>
             </div>
 
